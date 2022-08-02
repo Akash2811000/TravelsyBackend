@@ -478,8 +478,9 @@ class HotelDomain {
         var q: any = req.query;
         console.log(q);
         var ratingparams = q.rating.split(",")
-        var price = q.price.split("-");
-        console.log(price);
+        var priceparams = q.price.split("-");
+        var featuresparams = q.features.split(",");
+        
         // var filterHotelList:any = []
         // hotelData.forEach(e => {
         //     // if(e.rating == ratingparams[2] ){
@@ -490,12 +491,18 @@ class HotelDomain {
         // })
         console.log(ratingparams);
 
-        var hotelIdList: any = [1, 2, 3, 4, 5];
+        var hotelIdList: any = [1, 2, 3, 4, null];
         var resData: any = [];
         await Promise.all(
             hotelIdList.map(async (e: any) => {
-                var hotelfilterlist = await hotelmodel.find({ $and: [{ _id: e }, { $and: [{ rating: { $in: ratingparams } }, 
-                    { price: { $gte: parseInt(price[0]), $lte: parseInt(price[1])  } }] }] });
+                var hotelfilterlist = await hotelmodel.find({
+                    $and: [{ _id: e }, {
+                        $or: [{ rating: { $in: ratingparams } },
+                        { price: { $gte: parseInt(priceparams[0]), $lte: parseInt(priceparams[1]) } },
+                        { features: { $in: featuresparams }}
+                        ]
+                    }]
+                })
                 if (hotelfilterlist.length == 0) {
 
                 } else {
