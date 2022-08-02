@@ -7,7 +7,14 @@ class CityController {
         const cityDomain = new CityDomain();
         await cityDomain.getAllCity(req, res)
     }
+
+    static async getcitylist(req: Request, res: Response) {
+        const cityDomain = new CityDomain();
+        await cityDomain.getcityList(req, res)
+    }
+
 }
 
 router.get('/', CityController.getAllcity);
+router.get('/:cityname', CityController.getcitylist);
 export { router }

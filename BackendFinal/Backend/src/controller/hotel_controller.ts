@@ -25,6 +25,11 @@ class HotelController {
         const hoteldomain = new HotelDomain();
         await hoteldomain.getParticularHotel(req, res);
     }
+
+    static async getHotelFilterList (req:Request , res : Response){
+        const hoteldomain = new HotelDomain();
+        await hoteldomain.getHotelFilterList(req,res);
+    }
 }
 
 router.get('/', HotelController.getHotel);
@@ -33,5 +38,5 @@ router.get('/', HotelController.getHotel);
 router.get('/image/:imagelimit', HotelController.getHotelImage);
 router.get('/:hotelsearch', HotelController.getHotelBySearch);
 router.get('/gethotel/getsinglehotel/:hotel_id', HotelController.getHotelPerticular);
-
+router.get('/gethotellist/gethotelfilterlist',HotelController.getHotelFilterList);
 export { router };
