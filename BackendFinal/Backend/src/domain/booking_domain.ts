@@ -141,7 +141,7 @@ class BookingDomain {
                         });
                     })
                     console.log(roomDetailList.length)
-                    if (roomDetailList.length != 0) {
+                    if (roomDetailList.length != 0 && roomDetailList>=noOfRoom) {
                         //Room Image query
                         const roomImageData: any = [];
                         await Promise.all(
@@ -185,14 +185,7 @@ class BookingDomain {
                         };
                         res.status(StatusCode.Sucess).send(resultData);
                     } else {
-                        var resError = {
-                            "hotel_id": hotelId,
-                            "hotel_name": hotelName,
-                            "deluxe": [],
-                            "semi-deluxe": [],
-                            "super-deluxe": []
-                        };
-                        res.status(StatusCode.Sucess).send(resError)
+                        res.status(StatusCode.Sucess).send({})
                         res.end()
                     }
                 } else {
