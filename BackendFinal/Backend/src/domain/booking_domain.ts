@@ -37,7 +37,7 @@ class BookingDomain {
                 e.room.forEach((d: any) => {
                     if (rommIdFromReq.includes(d.room_id)) {
                         roomPrice.push(d.price);
-                        sum = sum +d.price;
+                        sum = sum + d.price;
                     }
                 })
             })
@@ -76,6 +76,7 @@ class BookingDomain {
             const hotelId: string = q.hotel_id;
             const cIn: Date = new Date(q.cin);
             const cOut: Date = new Date(q.cout);
+            const noOfRoom:any=q.no_of_room;
             const bookedId: any = [];
             const unAvailableRoomDupId: any = [];
             const unAvailableRoomId: any = [];
@@ -161,27 +162,28 @@ class BookingDomain {
                             })
 
                         );
+
                         const deluxeList: any = [];
                         const semiDeluxeList: any = [];
                         const superDeluxeList: any = []
-                       
+
                         roomImageData.forEach((e: any) => {
-                                if (e.room_type == "Deluxe") {
-                                    deluxeList.push(e);
-                                } else if (e.room_type == "Semi-Deluxe") {
-                                    semiDeluxeList.push(e);
-                                } else if (e.room_type == "Super-Deluxe") {
-                                    superDeluxeList.push(e);
-                                }
-                            })
-                            var resultData = {
-                                "hotel_id": hotelId,
-                                "hotel_name": hotelName,
-                                "deluxe": deluxeList,
-                                "semi-deluxe": semiDeluxeList,
-                                "super-deluxe": superDeluxeList
-                            };
-                            res.status(StatusCode.Sucess).send(resultData);
+                            if (e.room_type == "Deluxe") {
+                                deluxeList.push(e);
+                            } else if (e.room_type == "Semi-Deluxe") {
+                                semiDeluxeList.push(e);
+                            } else if (e.room_type == "Super-Deluxe") {
+                                superDeluxeList.push(e);
+                            }
+                        })
+                        var resultData = {
+                            "hotel_id": hotelId,
+                            "hotel_name": hotelName,
+                            "deluxe": deluxeList,
+                            "semi-deluxe": semiDeluxeList,
+                            "super-deluxe": superDeluxeList
+                        };
+                        res.status(StatusCode.Sucess).send(resultData);
                     } else {
                         var resError = {
                             "hotel_id": hotelId,
@@ -198,14 +200,9 @@ class BookingDomain {
                     res.end()
                 }
             } else {
-                res.status(StatusCode.Sucess).send({
-
-                })
+                res.status(StatusCode.Sucess).send({})
                 res.end()
             }
-
-
-
         } catch (error: any) {
             res.status(StatusCode.Server_Error).send(error.message);
             res.end();
@@ -270,7 +267,7 @@ class BookingDomain {
                 res.status(StatusCode.Sucess).send(bookingHistoryData);
 
             } else {
-                res.status(StatusCode.Sucess).send([]); 
+                res.status(StatusCode.Sucess).send([]);
                 res.end()
             }
         } catch (e: any) {
@@ -280,126 +277,7 @@ class BookingDomain {
     }
 
 
-    async check(cIn:any,cOut:any,hotelId:any,noOfRoom:any) {
-            const bookedId: any = [];
-            const unAvailableRoomDupId: any = [];
-            const unAvailableRoomId: any = [];
-            const roomDetailList: any = [];
-            var hotelName: any;
-
-            //booking table check checkIn and checkOut match with user checkIn & checkOut date
-            const resData = await bookingmodel.find({
-                $and: [{ hotel_id: hotelId },
-                {
-                    $or: [
-
-                        { $and: [{ "checkin_date": { $lte: cIn } }, { "checkout_date": { $lte: cIn } }] },
-                        { $and: [{ "checkin_date": { $gte: cOut } }, { "checkout_date": { $gte: cOut } }] }
-                    ]
-                }
-                ]
-            },
-                {
-                    "_id": 1,
-                    "hotel_id": 1,
-                    "checkin_date": 1,
-                    "checkout_date": 1,
-                    "room_id": 1
-                });
-            // console.log(resData);
-            if (resData != null) {
-                //booked ID from resData
-                resData.forEach(e => {
-                    bookedId.push(e._id);
-                });
-                const unAvailableBooking = await bookingmodel.find({ $and: [{ hotel_id: hotelId }, { _id: { $nin: bookedId } }] }, {
-                    "_id": 1,
-                    "hotel_id": 1,
-                    "room_id": 1
-                })
-                if (unAvailableBooking != null) {
-                    //Available roomId 
-                    unAvailableBooking.forEach(e => {
-                        e.room_id.forEach(d => {
-                            unAvailableRoomDupId.push(d);
-                        })
-                    })
-                    //Duplication Remove in roomId
-                    unAvailableRoomDupId.forEach((item: any) => {
-                        if (!unAvailableRoomId.includes(item)) {
-                            unAvailableRoomId.push(item);
-                        }
-                    })
-                    console.log(unAvailableRoomId);
-                    //get hotel all room Id and subtract it from unAvailable
-                    const hRoom = await hotelmodel.find({ _id: hotelId });
-                    hRoom.forEach(e => {
-                        hotelName = e.hotel_name;
-                        e.room.forEach(c => {
-                            if (unAvailableRoomId.includes(c.room_id)) {
-
-                            } else {
-                                roomDetailList.push(c);
-                            }
-                        });
-                    })
-                    console.log(roomDetailList.length);
-                    if(roomDetailList.length>noOfRoom){
-                        const roomImageData: any = [];
-                        await Promise.all(
-                            roomDetailList.map(async (e: any) => {
-                                let image = await imagemodel.find({ $and: [{ room_id: e.room_id }, { hotel_id: hotelId }] })
-                                roomImageData.push({
-                                    "room_id": e.room_id,
-                                    "room_type": e.room_type,
-                                    "room_size": e.room_size,
-                                    "bed_size": e.bed_size,
-                                    "max_capacity": e.max_capacity,
-                                    "price": e.price,
-                                    "features": e.features,
-                                    "description": e.description,
-                                    "image": image
-                                }
-                                );
-                            })
-
-                        );
-                        const deluxeList: any = [];
-                        const semiDeluxeList: any = [];
-                        const superDeluxeList: any = []
-                       
-                        roomImageData.forEach((e: any) => {
-                                if (e.room_type == "Deluxe") {
-                                    deluxeList.push(e);
-                                } else if (e.room_type == "Semi-Deluxe") {
-                                    semiDeluxeList.push(e);
-                                } else if (e.room_type == "Super-Deluxe") {
-                                    superDeluxeList.push(e);
-                                }
-                            })
-                            var resultData = [{
-                                "hotel_id": hotelId,
-                                "hotel_name": hotelName,
-                                 
-                                "deluxe": deluxeList,
-                                "semi-deluxe": semiDeluxeList,
-                                "super-deluxe": superDeluxeList
-                            }];
-                            return resultData;
-                    }else{
-                        return [];
-                    }
-                    
-                } else {
-                }
-            } else {
-            }
-
-
-
-    }
-
-    async checkCommon(cIn:any,cOut:any,hotelId:any,noOfRoom:any) {
+    async check(cIn: any, cOut: any, hotelId: any, noOfRoom: any) {
         const bookedId: any = [];
         const unAvailableRoomDupId: any = [];
         const unAvailableRoomId: any = [];
@@ -463,147 +341,360 @@ class BookingDomain {
                     });
                 })
                 console.log(roomDetailList.length);
-                if(roomDetailList.length>=noOfRoom){
-                        var resultData:any=[];
-                        resultData.push(hotelId);
-                        return resultData;
-                }else{
-                    return;
+                if (roomDetailList.length > noOfRoom) {
+                    const roomImageData: any = [];
+                    await Promise.all(
+                        roomDetailList.map(async (e: any) => {
+                            let image = await imagemodel.find({ $and: [{ room_id: e.room_id }, { hotel_id: hotelId }] })
+                            roomImageData.push({
+                                "room_id": e.room_id,
+                                "room_type": e.room_type,
+                                "room_size": e.room_size,
+                                "bed_size": e.bed_size,
+                                "max_capacity": e.max_capacity,
+                                "price": e.price,
+                                "features": e.features,
+                                "description": e.description,
+                                "image": image
+                            }
+                            );
+                        })
+
+                    );
+                    const deluxeList: any = [];
+                    const semiDeluxeList: any = [];
+                    const superDeluxeList: any = []
+
+                    roomImageData.forEach((e: any) => {
+                        if (e.room_type == "Deluxe") {
+                            deluxeList.push(e);
+                        } else if (e.room_type == "Semi-Deluxe") {
+                            semiDeluxeList.push(e);
+                        } else if (e.room_type == "Super-Deluxe") {
+                            superDeluxeList.push(e);
+                        }
+                    })
+                    var resultData = [{
+                        "hotel_id": hotelId,
+                        "hotel_name": hotelName,
+
+                        "deluxe": deluxeList,
+                        "semi-deluxe": semiDeluxeList,
+                        "super-deluxe": superDeluxeList
+                    }];
+                    return resultData;
+                } else {
+                    return [];
                 }
+
             } else {
-                return;
             }
         } else {
-            return;
         }
-}
+
+
+
+    }
+
+    async checkCommon(cIn: any, cOut: any, hotelId: any, noOfRoom: any) {
+        const bookedId: any = [];
+        const unAvailableRoomDupId: any = [];
+        const unAvailableRoomId: any = [];
+        const roomDetailList: any = [];
+        var hotelName: any;
+
+        //booking table check checkIn and checkOut match with user checkIn & checkOut date
+        const resData = await bookingmodel.find({
+            $and: [{ hotel_id: hotelId },
+            {
+                $or: [
+
+                    { $and: [{ "checkin_date": { $lte: cIn } }, { "checkout_date": { $lte: cIn } }] },
+                    { $and: [{ "checkin_date": { $gte: cOut } }, { "checkout_date": { $gte: cOut } }] }
+                ]
+            }
+            ]
+        },
+            {
+                "_id": 1,
+                "hotel_id": 1,
+                "checkin_date": 1,
+                "checkout_date": 1,
+                "room_id": 1
+            });
+        // console.log(resData);
+        if (resData != null) {
+            //booked ID from resData
+            resData.forEach(e => {
+                bookedId.push(e._id);
+            });
+            const unAvailableBooking = await bookingmodel.find({ $and: [{ hotel_id: hotelId }, { _id: { $nin: bookedId } }] }, {
+                "_id": 1,
+                "hotel_id": 1,
+                "room_id": 1
+            })
+            if (unAvailableBooking != null) {
+                //Available roomId 
+                unAvailableBooking.forEach(e => {
+                    e.room_id.forEach(d => {
+                        unAvailableRoomDupId.push(d);
+                    })
+                })
+                //Duplication Remove in roomId
+                unAvailableRoomDupId.forEach((item: any) => {
+                    if (!unAvailableRoomId.includes(item)) {
+                        unAvailableRoomId.push(item);
+                    }
+                })
+                console.log(unAvailableRoomId);
+                //get hotel all room Id and subtract it from unAvailable
+                const hRoom = await hotelmodel.find({ _id: hotelId });
+                hRoom.forEach(e => {
+                    hotelName = e.hotel_name;
+                    e.room.forEach(c => {
+                        if (unAvailableRoomId.includes(c.room_id)) {
+
+                        } else {
+                            roomDetailList.push(c);
+                        }
+                    });
+                })
+                console.log(roomDetailList.length);
+                if (roomDetailList.length >= noOfRoom) {
+                    return hotelId;
+                }
+            }
+        }
+    }
 
     async availableCheck(req: Request, res: Response) {
         try {
             var q: any = req.query;
-            const hotelId: string = q.hotel_id;
-            const cIn: Date = new Date(q.cin);
-            const cOut: Date = new Date(q.cout);
-            const noOfRoom=q.no_of_room;
-            const city=q.city_name;
-            const bookedId: any = [];
-            const unAvailableRoomDupId: any = [];
-            const unAvailableRoomId: any = [];
-            const roomDetailList: any = [];
-            var hotelName: any;
-            const hotelIdArray:any=[];
-            var cityBasedSerch=await hotelmodel.find({'address.city_id':69});
-            var retResult:any=[];
-            await Promise.all(cityBasedSerch.map( async (e:any)=>{
-                hotelIdArray.push(e._id);
-                var d=await this.checkCommon(cIn,cOut,e._id,5);
-                retResult.push(d);
-            }))
-            res.send(retResult);
-            res.end();
-            
-        //     // console.log(resData);
-        //     if (resData != null) {
-        //         //booked ID from resData
-        //         resData.forEach(e => {
-        //             bookedId.push(e._id);
-        //         });
-        //         const unAvailableBooking = await bookingmodel.find({ $and: [{ hotel_id: hotelId }, { _id: { $nin: bookedId } }] }, {
-        //             "_id": 1,
-        //             "hotel_id": 1,
-        //             "room_id": 1
-        //         })
-        //         console.log(unAvailableBooking);
-        //         if (unAvailableBooking != null) {
-        //             //Available roomId 
-        //             unAvailableBooking.forEach(e => {
-        //                 e.room_id.forEach(d => {
-        //                     unAvailableRoomDupId.push(d);
-        //                 })
-        //             })
-        //             //Duplication Remove in roomId
-        //             unAvailableRoomDupId.forEach((item: any) => {
-        //                 if (!unAvailableRoomId.includes(item)) {
-        //                     unAvailableRoomId.push(item);
-        //                 }
-        //             })
-        //             console.log(unAvailableRoomId);
-        //             //get hotel all room Id and subtract it from unAvailable
-        //             const hRoom = await hotelmodel.find({ _id: hotelId });
-        //             hRoom.forEach(e => {
-        //                 hotelName = e.hotel_name;
-        //                 e.room.forEach(c => {
-        //                     if (unAvailableRoomId.includes(c.room_id)) {
+            if (q.cin.length!=0 && q.cout.length != 0 && q.no_of_room.length != 0 && q.type.length != 0 && q.id.length != 0) {
+                const cIn: Date = new Date(q.cin);
+                const cOut: Date = new Date(q.cout);
+                const noOfRoom: any = q.no_of_room;
+                const type: any = q.type;
+                const id: any = q.id;
+                const hotelIdArray: any = [];
+                const hotelListSerch: any = [];
+                if (type == "hotel") {
+                    var dHotelId = await this.checkCommon(cIn, cOut, id, noOfRoom);
+                    if(dHotelId!=null){
+                    var hoteBySerch: any = await hotelmodel.aggregate([
+                        {
+                            $match: {
+                                '_id': parseInt(dHotelId)
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: "images",
+                                localField: "_id",
+                                foreignField: "hotel_id",
+                                pipeline: [
+                                    { $match: { room_id: null } }
+                                ],
+                                as: "Images",
+                            },
+                        },
+                        {
+                            "$project": {
+                                "hotel_id": "$_id",
+                                "hotel_name": "$hotel_name",
+                                "rating": "$rating",
+                                "address": "$address",
+                                "price": "$price",
+                                'Images': "$Images"
+                            }
+                        },
 
-        //                     } else {
-        //                         roomDetailList.push(c);
-        //                     }
-        //                 });
-        //             })
-        //             console.log(roomDetailList.length)
-        //             if (roomDetailList.length != 0) {
-        //                 //Room Image query
-        //                 const roomImageData: any = [];
-        //                 await Promise.all(
-        //                     roomDetailList.map(async (e: any) => {
-        //                         let image = await imagemodel.find({ $and: [{ room_id: e.room_id }, { hotel_id: hotelId }] })
-        //                         roomImageData.push({
-        //                             "room_id": e.room_id,
-        //                             "room_type": e.room_type,
-        //                             "room_size": e.room_size,
-        //                             "bed_size": e.bed_size,
-        //                             "max_capacity": e.max_capacity,
-        //                             "price": e.price,
-        //                             "features": e.features,
-        //                             "description": e.description,
-        //                             "image": image
-        //                         }
-        //                         );
-        //                     })
+                    ]);
+                    if (hoteBySerch.length != 0) {
+                        res.status(StatusCode.Sucess).send(hoteBySerch);
+                        res.end();
+                    } else {
+                        res.status(StatusCode.Sucess).send([])
+                        res.end()
+                    }
+                    } else {
+                        res.status(StatusCode.Sucess).send([])
+                        res.end()
+                    }
 
-        //                 );
-        //                 const deluxeList: any = [];
-        //                 const semiDeluxeList: any = [];
-        //                 const superDeluxeList: any = []
-                       
-        //                 roomImageData.forEach((e: any) => {
-        //                         if (e.room_type == "Deluxe") {
-        //                             deluxeList.push(e);
-        //                         } else if (e.room_type == "Semi-Deluxe") {
-        //                             semiDeluxeList.push(e);
-        //                         } else if (e.room_type == "Super-Deluxe") {
-        //                             superDeluxeList.push(e);
-        //                         }
-        //                     })
-        //                     var resultData = {
-        //                         "hotel_id": hotelId,
-        //                         "hotel_name": hotelName,
-        //                         "deluxe": deluxeList,
-        //                         "semi-deluxe": semiDeluxeList,
-        //                         "super-deluxe": superDeluxeList
-        //                     };
-        //                     res.status(StatusCode.Sucess).send(resultData);
-        //             } else {
-        //                 var resError = {
-        //                     "hotel_id": hotelId,
-        //                     "hotel_name": hotelName,
-        //                     "deluxe": [],
-        //                     "semi-deluxe": [],
-        //                     "super-deluxe": []
-        //                 };
-        //                 res.status(StatusCode.Sucess).send(resError)
-        //                 res.end()
-        //             }
-        //         } else {
-        //             res.status(StatusCode.Sucess).send({})
-        //             res.end()
-        //         }
-        //     } else {
-        //         res.status(StatusCode.Sucess).send({
+                }
+                else if (type == "area") {
+                    var cityBasedSerch = await hotelmodel.find({ 'address.city_id': id });
+                    var retResult: any = [];
+                    await Promise.all(cityBasedSerch.map(async (e: any) => {
+                        hotelIdArray.push(e._id);
+                        var d = await this.checkCommon(cIn, cOut, e._id, 5);
+                        retResult.push(d);
+                    }))
+                    if (retResult.length != 0) {
+                        await Promise.all(
+                            retResult.map(async (e: any) => {
+                                var hoteBySerch: any = await hotelmodel.aggregate([
+                                    {
+                                        $match: {
+                                            '_id': e
+                                        }
+                                    },
+                                    {
+                                        $lookup: {
+                                            from: "images",
+                                            localField: "_id",
+                                            foreignField: "hotel_id",
+                                            pipeline: [
+                                                { $match: { room_id: null } }
+                                            ],
+                                            as: "Images",
+                                        },
+                                    },
+                                    {
+                                        "$project": {
+                                            "hotel_id": "$_id",
+                                            "hotel_name": "$hotel_name",
+                                            "rating": "$rating",
+                                            "address": "$address",
+                                            "price": "$price",
+                                            'Images': "$Images"
+                                        }
+                                    },
 
-        //         })
-        //         res.end()
-        //     }
+                                ]);
+                                if (hoteBySerch.length != 0) {
+                                    console.log(hoteBySerch);
+                                    hotelListSerch.push(hoteBySerch[0]);
+                                }
+                            }
+                            ))
+                        if (hotelListSerch.length == 0) {
+                            res.status(StatusCode.Sucess).send([])
+                            res.end()
+                        } else {
+                            res.status(StatusCode.Sucess).send(hotelListSerch);
+                            res.end();
+                        }
+                    } else {
+                        res.status(StatusCode.Sucess).send([])
+                        res.end()
+                    }
+                } else {
+                    //type not match
+                    res.send([]);
+                    res.end();
+                }
+            } else {
+                res.send('params is not match');
+                res.end();
+            }
+
+
+
+
+            //     // console.log(resData);
+            //     if (resData != null) {
+            //         //booked ID from resData
+            //         resData.forEach(e => {
+            //             bookedId.push(e._id);
+            //         });
+            //         const unAvailableBooking = await bookingmodel.find({ $and: [{ hotel_id: hotelId }, { _id: { $nin: bookedId } }] }, {
+            //             "_id": 1,
+            //             "hotel_id": 1,
+            //             "room_id": 1
+            //         })
+            //         console.log(unAvailableBooking);
+            //         if (unAvailableBooking != null) {
+            //             //Available roomId 
+            //             unAvailableBooking.forEach(e => {
+            //                 e.room_id.forEach(d => {
+            //                     unAvailableRoomDupId.push(d);
+            //                 })
+            //             })
+            //             //Duplication Remove in roomId
+            //             unAvailableRoomDupId.forEach((item: any) => {
+            //                 if (!unAvailableRoomId.includes(item)) {
+            //                     unAvailableRoomId.push(item);
+            //                 }
+            //             })
+            //             console.log(unAvailableRoomId);
+            //             //get hotel all room Id and subtract it from unAvailable
+            //             const hRoom = await hotelmodel.find({ _id: hotelId });
+            //             hRoom.forEach(e => {
+            //                 hotelName = e.hotel_name;
+            //                 e.room.forEach(c => {
+            //                     if (unAvailableRoomId.includes(c.room_id)) {
+
+            //                     } else {
+            //                         roomDetailList.push(c);
+            //                     }
+            //                 });
+            //             })
+            //             console.log(roomDetailList.length)
+            //             if (roomDetailList.length != 0) {
+            //                 //Room Image query
+            //                 const roomImageData: any = [];
+            //                 await Promise.all(
+            //                     roomDetailList.map(async (e: any) => {
+            //                         let image = await imagemodel.find({ $and: [{ room_id: e.room_id }, { hotel_id: hotelId }] })
+            //                         roomImageData.push({
+            //                             "room_id": e.room_id,
+            //                             "room_type": e.room_type,
+            //                             "room_size": e.room_size,
+            //                             "bed_size": e.bed_size,
+            //                             "max_capacity": e.max_capacity,
+            //                             "price": e.price,
+            //                             "features": e.features,
+            //                             "description": e.description,
+            //                             "image": image
+            //                         }
+            //                         );
+            //                     })
+
+            //                 );
+            //                 const deluxeList: any = [];
+            //                 const semiDeluxeList: any = [];
+            //                 const superDeluxeList: any = []
+
+            //                 roomImageData.forEach((e: any) => {
+            //                         if (e.room_type == "Deluxe") {
+            //                             deluxeList.push(e);
+            //                         } else if (e.room_type == "Semi-Deluxe") {
+            //                             semiDeluxeList.push(e);
+            //                         } else if (e.room_type == "Super-Deluxe") {
+            //                             superDeluxeList.push(e);
+            //                         }
+            //                     })
+            //                     var resultData = {
+            //                         "hotel_id": hotelId,
+            //                         "hotel_name": hotelName,
+            //                         "deluxe": deluxeList,
+            //                         "semi-deluxe": semiDeluxeList,
+            //                         "super-deluxe": superDeluxeList
+            //                     };
+            //                     res.status(StatusCode.Sucess).send(resultData);
+            //             } else {
+            //                 var resError = {
+            //                     "hotel_id": hotelId,
+            //                     "hotel_name": hotelName,
+            //                     "deluxe": [],
+            //                     "semi-deluxe": [],
+            //                     "super-deluxe": []
+            //                 };
+            //                 res.status(StatusCode.Sucess).send(resError)
+            //                 res.end()
+            //             }
+            //         } else {
+            //             res.status(StatusCode.Sucess).send({})
+            //             res.end()
+            //         }
+            //     } else {
+            //         res.status(StatusCode.Sucess).send({
+
+            //         })
+            //         res.end()
+            //     }
 
 
 

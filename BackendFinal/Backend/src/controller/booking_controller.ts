@@ -26,7 +26,7 @@ class BookingController {
 router.post('/hotelbooking', BookingController.addBooking);
 router.get('/check', BookingController.roomBookAvailableCheck);
 router.get('/user/bookings', BookingController.userBookingHistory);
-router.get('/checkbooking', BookingController.bookingAvilCheck);
+router.get('/hotellist/checkbooking', BookingController.bookingAvilCheck);
 
 export { router };
 
