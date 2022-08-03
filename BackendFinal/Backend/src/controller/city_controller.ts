@@ -15,6 +15,6 @@ class CityController {
 
 }
 
-router.get('/', CityController.getAllcity);
-router.get('/:cityname', CityController.getcitylist);
+router.get('/gh', CityController.getAllcity);
+router.get('/', CityController.getcitylist);
 export { router }
