@@ -284,17 +284,17 @@ class HotelDomain {
                                     $match: { _id: e },
 
                                 },
-                                // {
-                                //     $lookup: {
-                                //         from: "images",
-                                //         localField: "_id",
-                                //         foreignField: "hotel_id",
-                                //         pipeline: [
-                                //             { $match: { room_id: null } }
-                                //         ],
-                                //         as: "Images",
-                                //     },
-                                // },
+                                {
+                                    $lookup: {
+                                        from: "images",
+                                        localField: "_id",
+                                        foreignField: "hotel_id",
+                                        pipeline: [
+                                            { $match: { room_id: null } }
+                                        ],
+                                        as: "Images",
+                                    },
+                                },
                                 {
                                     "$project": {
                                         "hotel_id": "$_id",
@@ -320,17 +320,17 @@ class HotelDomain {
                                         }]
                                     }
                                 },
-                                // {
-                                //     $lookup: {
-                                //         from: "images",
-                                //         localField: "_id",
-                                //         foreignField: "hotel_id",
-                                //         pipeline: [
-                                //             { $match: { room_id: null } }
-                                //         ],
-                                //         as: "Images",
-                                //     },
-                                // },
+                                {
+                                    $lookup: {
+                                        from: "images",
+                                        localField: "_id",
+                                        foreignField: "hotel_id",
+                                        pipeline: [
+                                            { $match: { room_id: null } }
+                                        ],
+                                        as: "Images",
+                                    },
+                                },
                                 {
                                     "$project": {
                                         "hotel_id": "$_id",
