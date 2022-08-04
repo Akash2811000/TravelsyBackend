@@ -262,52 +262,88 @@ class HotelDomain {
                 res.end();
             }
             var avilHotelId = avilHotelId.map(Number);
-
+            console.log(avilHotelId);
 
             if (avilHotelId != null) {
                 var ratingparams = q.rating.split(",").map(Number);
                 var priceparams = q.price.split("-").map(Number);
-
                 var flag: boolean = false;
-                priceparams.length == 1 ? (flag = true) : (flag = false);
+                q.price.length==0 ? (null) : (priceparams.length == 1 ? (priceparams[1]=100000) : (flag = false));
                 var featuresparams = q.features.split(",");
                 var resData: any = [];
+                console.log(ratingparams);
+                console.log(featuresparams);
+                console.log(priceparams);
                 await Promise.all(
                     avilHotelId.map(async (e: any) => {
-                        var hotelfilterlist = await hotelmodel.aggregate(
-                            [{
-                                $match: {
-                                    $and: [{ _id: e }, {
-                                        $or: [{ rating: { $in: ratingparams } },
-                                        { price: flag ? { $gte: priceparams[0] } : { $gte: priceparams[0], $lte: priceparams[1] } },
-                                        { features: { $in: featuresparams } }
-                                        ]
-                                    }]
-                                }
-                            },
-                            {
-                                $lookup: {
-                                    from: "images",
-                                    localField: "_id",
-                                    foreignField: "hotel_id",
-                                    pipeline: [
-                                        { $match: { room_id: null } }
-                                    ],
-                                    as: "Images",
+                        if (q.rating.length == 0 && q.price.length == 0 && q.features.length == 0) {
+                            console.log('if')
+                        
+                            var hotelfilterlist = await hotelmodel.aggregate(
+                                [{
+                                    $match: { _id: e },
+
                                 },
-                            },
-                            {
-                                "$project": {
-                                    "hotel_id": "$_id",
-                                    "hotel_name": "$hotel_name",
-                                    "rating": "$rating",
-                                    "address": "$address",
-                                    "price": "$price",
-                                    'Images': "$Images"
-                                }
-                            },
-                            ]
-                        )
+                                // {
+                                //     $lookup: {
+                                //         from: "images",
+                                //         localField: "_id",
+                                //         foreignField: "hotel_id",
+                                //         pipeline: [
+                                //             { $match: { room_id: null } }
+                                //         ],
+                                //         as: "Images",
+                                //     },
+                                // },
+                                {
+                                    "$project": {
+                                        "hotel_id": "$_id",
+                                        "hotel_name": "$hotel_name",
+                                        "rating": "$rating",
+                                        "address": "$address",
+                                        "price": "$price",
+                                        'Images': "$Images"
+                                    }
+                                },
+                                ]
+                            )
+                        } else {
+                            console.log('else')
+                            var hotelfilterlist = await hotelmodel.aggregate(
+                                [{
+                                    $match: {
+                                        $and: [{ _id: e }, {
+                                            $or: [{ rating: { $in: ratingparams } },
+                                            { price: { $gte: priceparams[0], $lte: priceparams[1] } },
+                                            { features: { $in: featuresparams } }
+                                            ]
+                                        }]
+                                    }
+                                },
+                                // {
+                                //     $lookup: {
+                                //         from: "images",
+                                //         localField: "_id",
+                                //         foreignField: "hotel_id",
+                                //         pipeline: [
+                                //             { $match: { room_id: null } }
+                                //         ],
+                                //         as: "Images",
+                                //     },
+                                // },
+                                {
+                                    "$project": {
+                                        "hotel_id": "$_id",
+                                        "hotel_name": "$hotel_name",
+                                        "rating": "$rating",
+                                        "address": "$address",
+                                        "price": "$price",
+                                        'Images': "$Images"
+                                    }
+                                },
+                                ]
+                            )
+                        }
                         if (hotelfilterlist.length == 0) {
 
                         } else {
@@ -315,8 +351,10 @@ class HotelDomain {
                         }
                     })
                 )
+
                 res.send(resData);
                 res.end();
+
             }
 
         }

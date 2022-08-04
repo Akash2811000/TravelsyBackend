@@ -278,6 +278,7 @@ class BookingDomain {
             res.end();
         }
     }
+
     async checkCommon(cIn: any, cOut: any, hotelId: any, noOfRoom: any) {
         const bookedId: any = [];
         const unAvailableRoomDupId: any = [];
@@ -469,6 +470,33 @@ class BookingDomain {
             res.end();
         }
     }
+
+    async getRoomPrize(req: Request , res: Response){
+        var query:any = req.query;
+        var roomid:any = query.roomid.split(",").map(Number);
+        var hotelid :any = query.hotelid
+        console.log('this is room id ' +roomid);
+        console.log('this is hotel id ' +hotelid);
+        console.log(query);
+        var getHotelRoom = await hotelmodel.find({ _id: hotelid })
+        res.send(getHotelRoom);
+        var roomPrice: any = [];
+        var sum = 0;
+        getHotelRoom.forEach((e: any) => {
+            e.room.forEach((d: any) => {
+                if (roomid.includes(d.room_id)) {
+                    roomPrice.push(d.price);
+                    sum = sum +d.price;
+                }
+            })
+        })
+        console.log()
+        //res.send(query);
+    }
+
+
+
+
 }
 
 export { BookingDomain };
