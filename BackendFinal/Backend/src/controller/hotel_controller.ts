@@ -20,6 +20,7 @@ class HotelController {
         const hoteldomain = new HotelDomain();
         await hoteldomain.getHotelImage(req, res);
     }
+    
     //hotel image based on request limit
     static async getHotelPerticular(req: Request, res: Response) {
         const hoteldomain = new HotelDomain();
@@ -28,7 +29,6 @@ class HotelController {
 }
 
 router.get('/', HotelController.getHotel);
-
 //get hotel image route
 router.get('/image/:imagelimit', HotelController.getHotelImage);
 router.get('/:hotelsearch', HotelController.getHotelBySearch);

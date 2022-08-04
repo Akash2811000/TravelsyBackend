@@ -54,59 +54,32 @@ class HotelDomain {
 
         try {
 
-
-
             var hotelData = await hotelmodel.aggregate([
-
-
-
+                {$match:{rating:{$gte:5}}},
                 { $sample: { size: parseInt(req.params.imagelimit) } },
-
                 {
-
                     $lookup: {
-
                         from: "images",
-
                         localField: "_id",
-
                         foreignField: "hotel_id",
-
                         pipeline: [
-
                             { $match: { room_id: null } }
-
                         ],
-
                         as: "Images",
-
                     },
-
                 },
-
                 {
-
                     "$project": {
-
                         "hotel_id": "$_id",
-
                         "hotel_name": "$hotel_name",
-
                         "rating": "$rating",
-
                         "address": "$address",
-
                         'Images': "$Images"
-
                     }
-
                 },
-
             ])
-
             res.send(hotelData);
             console.log(hotelData);
-
             res.end();
 
         } catch (e: any) {
