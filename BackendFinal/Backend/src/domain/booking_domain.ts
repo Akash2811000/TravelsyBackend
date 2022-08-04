@@ -37,7 +37,7 @@ class BookingDomain {
                 e.room.forEach((d: any) => {
                     if (rommIdFromReq.includes(d.room_id)) {
                         roomPrice.push(d.price);
-                        sum = sum +d.price;
+                        sum = sum + d.price;
                     }
                 })
             })
@@ -164,24 +164,24 @@ class BookingDomain {
                         const deluxeList: any = [];
                         const semiDeluxeList: any = [];
                         const superDeluxeList: any = []
-                       
+
                         roomImageData.forEach((e: any) => {
-                                if (e.room_type == "Deluxe") {
-                                    deluxeList.push(e);
-                                } else if (e.room_type == "Semi-Deluxe") {
-                                    semiDeluxeList.push(e);
-                                } else if (e.room_type == "Super-Deluxe") {
-                                    superDeluxeList.push(e);
-                                }
-                            })
-                            var resultData = {
-                                "hotel_id": hotelId,
-                                "hotel_name": hotelName,
-                                "deluxe": deluxeList,
-                                "semi-deluxe": semiDeluxeList,
-                                "super-deluxe": superDeluxeList
-                            };
-                            res.status(StatusCode.Sucess).send(resultData);
+                            if (e.room_type == "Deluxe") {
+                                deluxeList.push(e);
+                            } else if (e.room_type == "Semi-Deluxe") {
+                                semiDeluxeList.push(e);
+                            } else if (e.room_type == "Super-Deluxe") {
+                                superDeluxeList.push(e);
+                            }
+                        })
+                        var resultData = {
+                            "hotel_id": hotelId,
+                            "hotel_name": hotelName,
+                            "deluxe": deluxeList,
+                            "semi-deluxe": semiDeluxeList,
+                            "super-deluxe": superDeluxeList
+                        };
+                        res.status(StatusCode.Sucess).send(resultData);
                     } else {
                         var resError = {
                             "hotel_id": hotelId,
@@ -270,7 +270,7 @@ class BookingDomain {
                 res.status(StatusCode.Sucess).send(bookingHistoryData);
 
             } else {
-                res.status(StatusCode.Sucess).send([]); 
+                res.status(StatusCode.Sucess).send([]);
                 res.end()
             }
         } catch (e: any) {
@@ -339,7 +339,7 @@ class BookingDomain {
                         }
                     });
                 })
-               // console.log(roomDetailList.length);
+                // console.log(roomDetailList.length);
                 if (roomDetailList.length >= noOfRoom) {
                     return hotelId;
                 }
@@ -349,7 +349,7 @@ class BookingDomain {
     async availableCheck(req: Request, res: Response) {
         try {
             var q: any = req.query;
-            if (q.cin.length!=0 && q.cout.length != 0 && q.no_of_room.length != 0 && q.type.length != 0 && q.id.length != 0) {
+            if (q.cin.length != 0 && q.cout.length != 0 && q.no_of_room.length != 0 && q.type.length != 0 && q.id.length != 0) {
                 const cIn: Date = new Date(q.cin);
                 const cOut: Date = new Date(q.cout);
                 const noOfRoom: any = q.no_of_room;
@@ -359,42 +359,42 @@ class BookingDomain {
                 const hotelListSerch: any = [];
                 if (type == "hotel") {
                     var dHotelId = await this.checkCommon(cIn, cOut, id, noOfRoom);
-                    if(dHotelId!=null){
-                    var hoteBySerch: any = await hotelmodel.aggregate([
-                        {
-                            $match: {
-                                '_id': parseInt(dHotelId)
-                            }
-                        },
-                        {
-                            $lookup: {
-                                from: "images",
-                                localField: "_id",
-                                foreignField: "hotel_id",
-                                pipeline: [
-                                    { $match: { room_id: null } }
-                                ],
-                                as: "Images",
+                    if (dHotelId != null) {
+                        var hoteBySerch: any = await hotelmodel.aggregate([
+                            {
+                                $match: {
+                                    '_id': parseInt(dHotelId)
+                                }
                             },
-                        },
-                        {
-                            "$project": {
-                                "hotel_id": "$_id",
-                                "hotel_name": "$hotel_name",
-                                "rating": "$rating",
-                                "address": "$address",
-                                "price": "$price",
-                                'Images': "$Images"
-                            }
-                        },
-                    ]);
-                    if (hoteBySerch.length != 0) {
-                        res.status(StatusCode.Sucess).send(hoteBySerch);
-                        res.end();
-                    } else {
-                        res.status(StatusCode.Sucess).send([])
-                        res.end()
-                    }
+                            {
+                                $lookup: {
+                                    from: "images",
+                                    localField: "_id",
+                                    foreignField: "hotel_id",
+                                    pipeline: [
+                                        { $match: { room_id: null } }
+                                    ],
+                                    as: "Images",
+                                },
+                            },
+                            {
+                                "$project": {
+                                    "hotel_id": "$_id",
+                                    "hotel_name": "$hotel_name",
+                                    "rating": "$rating",
+                                    "address": "$address",
+                                    "price": "$price",
+                                    'Images': "$Images"
+                                }
+                            },
+                        ]);
+                        if (hoteBySerch.length != 0) {
+                            res.status(StatusCode.Sucess).send(hoteBySerch);
+                            res.end();
+                        } else {
+                            res.status(StatusCode.Sucess).send([])
+                            res.end()
+                        }
                     } else {
                         res.status(StatusCode.Sucess).send([])
                         res.end()
@@ -440,7 +440,7 @@ class BookingDomain {
                                     },
                                 ]);
                                 if (hoteBySerch.length != 0) {
-                                   // console.log(hoteBySerch);
+                                    // console.log(hoteBySerch);
                                     hotelListSerch.push(hoteBySerch[0]);
                                 }
                             }
@@ -471,27 +471,58 @@ class BookingDomain {
         }
     }
 
-    async getRoomPrize(req: Request , res: Response){
-        var query:any = req.query;
-        var roomid:any = query.roomid.split(",").map(Number);
-        var hotelid :any = query.hotelid
-        console.log('this is room id ' +roomid);
-        console.log('this is hotel id ' +hotelid);
-        console.log(query);
+    async getRoomPrize(req: Request, res: Response) {
+        var query: any = req.query;
+        var roomid: any = query.roomid.split(",").map(Number);
+        var hotelid: any = query.hotelid
         var getHotelRoom = await hotelmodel.find({ _id: hotelid })
-        res.send(getHotelRoom);
+        var hotelId = parseInt(getHotelRoom[0]._id.toString());
+        var hotelName = getHotelRoom[0].hotel_name.toString();
+        var address = getHotelRoom[0].address?.address_line;
+        var rating = parseInt(getHotelRoom[0].rating.toString());
         var roomPrice: any = [];
         var sum = 0;
         getHotelRoom.forEach((e: any) => {
             e.room.forEach((d: any) => {
                 if (roomid.includes(d.room_id)) {
                     roomPrice.push(d.price);
-                    sum = sum +d.price;
+                    sum = sum + d.price;
                 }
             })
         })
-        console.log()
-        //res.send(query);
+        var checkInDate = new Date(query.cin);
+        var checkOutDate = new Date(query.cout);
+        var diff = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
+        var diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+        const getHotelRoomPrice: number = sum;
+        var roomPrizwWithDays = getHotelRoomPrice * diffDays;
+        var gstPercentage = 18;
+        var discountPercentage = 5;
+        var roomPriceWithGst = (roomPrizwWithDays * (gstPercentage / 100));
+        var discountPrice = (roomPrizwWithDays + roomPriceWithGst) * (discountPercentage / 100);
+        var totalRoomPrice = (roomPrizwWithDays + roomPriceWithGst - discountPrice);
+        var roomPriceData = {
+            hotelid: hotelId,
+            hotelName: hotelName,
+            address: address,
+            rating: rating,
+            checkInDate: checkInDate,
+            checkOutDate: checkOutDate,
+            roomId: roomid,
+            roomPrice: getHotelRoomPrice,
+            noOfDays: diffDays,
+            subTotal: roomPrizwWithDays,
+            gstPercentage: gstPercentage,
+            discountPercentage: discountPercentage,
+            gst: roomPriceWithGst,
+            offer: discountPrice,
+            total: totalRoomPrice
+
+        }
+        res.send(roomPriceData);
+
+
+
     }
 
 
