@@ -7,7 +7,6 @@ import credential from "./travelproject22-6b9d4-firebase-adminsdk-2wiay-c9c18767
 import { LoggerMiddleware } from './middlewear/logger';
 
 const app: Express = express();
-//const connection = mongoose.connect('mongodb://localhost:27017/mytsdata');
 const connection = mongoose.connect('mongodb+srv://akash:akash@cluster0.4gzjhma.mongodb.net/mmt');
 dotenv.config();
 const port = process.env.PORT;
@@ -33,7 +32,7 @@ admin.initializeApp(
 );
 
 // TOKEN VERIFICATION CALL
-// app.use(verifyToken, checkRequest);
+app.use(verifyToken, checkRequest);
 
 // ROOT LEVEL
 app.get('/', (req: Request, res: Response) => {

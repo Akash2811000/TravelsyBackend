@@ -1,8 +1,8 @@
 import express, { Express, Request, Response } from 'express';
-import { hotelmodel } from '../model/hotel';
 import { reviewmodel } from '../model/review';
 import { Usermodel } from '../model/users';
 import { StatusCode } from '../statuscode';
+import { hotelmodel } from '../model/hotel';
 
 class ReviewDomain {
 
@@ -10,31 +10,30 @@ class ReviewDomain {
     async postReview(req: Request, res: Response) {
         console.log('post')
         var nextID: any = await reviewmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
-        // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-        // console.log(reqData)
-        var uid: String = "8guBFKRFAdPGlx7frJHC4qJcJ173";
+        var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+        console.log(reqData)
         var rating: Number = (Number(req.body.cleanliness) + Number(req.body.comfort) + Number(req.body.location) + Number(req.body.facilities)) / 4;
         var hotelId: Number = parseInt(req.params.id);
         var postData: object = {
             _id: nextID?._id == undefined ? 1 : Number(nextID?.id) + 1,
-            user_id: uid,
+            user_id: reqData.uid,
             hotel_id: hotelId,
             date: Date.now(),
             comment: req.body.comment,
-            cleanliness: req.body.cleanliness,
-            comfort: req.body.comfort,
-            location: req.body.location,
-            facilities: req.body.facilities,
+            cleanliness: req.body.cleanliness.toExponential(1),
+            comfort: req.body.comfort.toExponential(1),
+            location: req.body.location.toExponential(1),
+            facilities: req.body.facilities.toExponential(1),
             rating: rating
         }
         console.log(postData);
         var data = new reviewmodel(postData);
         try {
 
-            var cleanliness=0;
-            var comfort=0;
-            var location=0;
-            var facilities=0;
+            var cleanliness = 0.0;
+            var comfort = 0.0;
+            var location = 0.0;
+            var facilities = 0.0;
 
             await data.save();
             var hotelReview = await reviewmodel.find({ hotel_id: req.params.id }).populate({ path: 'user_id', model: Usermodel, select: { 'user_name': 1, 'user_image': 1, '_id': 0 } });
@@ -42,27 +41,24 @@ class ReviewDomain {
                 res.status(StatusCode.Not_Found).send([]);
             }
             else {
-                console.log(hotelReview);
-
-
-                hotelReview.forEach((e:any)=>{
-                    cleanliness=cleanliness+e.cleanliness;
-                    comfort=comfort+e.comfort;
-                    location=location+e.location;
-                    facilities=facilities+e.facilities;
+                hotelReview.forEach((e: any) => {
+                    cleanliness = cleanliness + e.cleanliness;
+                    comfort = comfort + e.comfort;
+                    location = location + e.location;
+                    facilities = facilities + e.facilities;
                 })
-                var avgCleanliness=cleanliness/hotelReview.length;
-                var avgComfort=comfort/hotelReview.length;
-                var avgLocation=location/hotelReview.length;
-                var avgFacilities=facilities/hotelReview.length;
+                var avgCleanliness = cleanliness / hotelReview.length;
+                var avgComfort = comfort / hotelReview.length;
+                var avgLocation = location / hotelReview.length;
+                var avgFacilities = facilities / hotelReview.length;
 
-                var avgRating = ((avgCleanliness+avgComfort+avgLocation+avgFacilities)/4).toExponential(1); 
+                var avgRating = ((avgCleanliness + avgComfort + avgLocation + avgFacilities) / 4).toExponential(1);
 
-                await hotelmodel.updateOne({_id:hotelId},{$set:{rating:avgRating}});
+                await hotelmodel.updateOne({ _id: hotelId }, { $set: { rating: avgRating } });
                 console.log("updated");
-                
+
                 res.status(StatusCode.Sucess).send(hotelReview);
-            } 
+            }
             // res.status(StatusCode.Sucess).send("data added ");
         }
         catch (err: any) {
@@ -71,36 +67,41 @@ class ReviewDomain {
         res.end();
     }
 
+
     // GET Hotel Review
     async getHotelReview(req: Request, res: Response) {
         try {
-            var cleanliness=0;
-            var comfort=0;
-            var location=0;
-            var facilities=0;
-            var hotelReview = await reviewmodel.find({ hotel_id: req.params.id }).populate({ path: 'user_id', model: Usermodel, select: { 'user_name': 1, 'user_image': 1, '_id': 0 } });
-            if (hotelReview.length == 0) {
+            var cleanliness = 0;
+            var comfort = 0;
+            var location = 0;
+            var facilities = 0;
+            var hotelReview = await reviewmodel.find({ hotel_id: req.params.id },{__v:0}).populate({ path: 'user_id', model: Usermodel, select: { 'user_name': 1, 'user_image': 1, '_id': 0 } });
+            var resHotel = await hotelmodel.find({ "_id": req.params.id });
+            if (hotelReview.length == 0 && resHotel.length == 0) {
                 res.status(StatusCode.Sucess).send([]);
             }
             else {
-                hotelReview.forEach((e:any)=>{
-                    cleanliness=cleanliness+e.cleanliness;
-                    comfort=comfort+e.comfort;
-                    location=location+e.location;
-                    facilities=facilities+e.facilities;
+                hotelReview.forEach((e: any) => {
+                    cleanliness = cleanliness + e.cleanliness;
+                    comfort = comfort + e.comfort;
+                    location = location + e.location;
+                    facilities = facilities + e.facilities;
                 })
-                var avgCleanliness=cleanliness/hotelReview.length;
-                var avgComfort=comfort/hotelReview.length;
-                var avgLocation=location/hotelReview.length;
-                var avgFacilities=facilities/hotelReview.length;
-                var resData={
-                    avgCleanliness:avgCleanliness,
-                    avgComfort:avgComfort,
-                    avgLocation:avgLocation,
-                    avgFacilities:avgFacilities,
-                    reviews:hotelReview
+                var avgCleanliness = cleanliness / hotelReview.length;
+                var avgComfort = comfort / hotelReview.length;
+                var avgLocation = location / hotelReview.length;
+                var avgFacilities = facilities / hotelReview.length;
+                var resData = {
+                    hotel_id: resHotel[0]._id,
+                    hotelRating: resHotel[0].rating,
+                    avgCleanliness: avgCleanliness.toExponential(1),
+                    avgComfort: avgComfort.toExponential(1),
+                    avgLocation: avgLocation.toExponential(1),
+                    avgFacilities: avgFacilities.toExponential(1),
+                    reviews: hotelReview
                 }
                 res.status(StatusCode.Sucess).send(resData);
+                res.end();
             }
         }
         catch (err: any) {

@@ -17,16 +17,10 @@ class BookingController {
         const bookIngDomain = new BookingDomain();
         await bookIngDomain.userBookingHistory(req, res);
     }
-    static async bookingAvilCheck(req: Request, res: Response) {
-        const bookIngDomain = new BookingDomain();
-        await bookIngDomain.availableCheck(req, res);
-    }
 }
 
 router.post('/hotelbooking', BookingController.addBooking);
 router.get('/check', BookingController.roomBookAvailableCheck);
 router.get('/user/bookings', BookingController.userBookingHistory);
-router.get('/hotellist/checkbooking', BookingController.bookingAvilCheck);
-
 export { router };
 
