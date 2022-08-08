@@ -45,19 +45,6 @@ class PaymentDomain {
     }
 
     async verifypayment(req: Request, res: Response) {
-        // const data = crypto.createHmac('sha256', secret_key)
-
-        // data.update(JSON.stringify(req.body))
-        // const digest = data.digest('hex')
-        // if (digest === req.headers['x-razorpay-signature']) {
-        //     console.log('request is legit')
-        //     //we can store detail in db and send the response
-        //     res.json({
-        //         status: 'ok'
-        //     })
-        // } else {
-        //     res.status(400).send('Invalid signature');
-        // }
         var orderId = req.body.orderId;
         var paymentId = req.body.paymentId;
         var body = orderId + "|" + paymentId;
