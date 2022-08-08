@@ -4,17 +4,16 @@ dotenv.config();
 import { Razorpay } from 'razorpay-typescript';
 import * as crypto from "crypto";
 import { StatusCode } from '../statuscode';
-// import {RazorWebhook} from 'razorpay-typescript'
-// import { Razorpay } from "../dist/razorpay";
-//import Razorpay from 'razorpay';
-var secretkey = process.env.secretkey;
+
+var secretkey = process.env.KEY_SECRET;
+var keyId = process.env.KEY_ID;
 const instance: Razorpay = new Razorpay({
     authKey: {
-        key_id: 'rzp_test_LqRkyAt6cQpVui',
-        key_secret: 'yCKG9zsdIoWft58QwrYxjf1G',
+        key_id :keyId??"keyId",
+        key_secret:secretkey??"secretkey"
     },
 });
-const secret_key = 'yCKG9zsdIoWft58QwrYxjf1G'
+//const secret_key = 'yCKG9zsdIoWft58QwrYxjf1G'
 class PaymentDomain {
 
     async createOrder(req: Request, res: Response) {
@@ -26,8 +25,7 @@ class PaymentDomain {
         }
         console.log(options);
         try {
-
-
+            console.log(instance)
             const response = await instance.orders.create(options);
             console.log("hy");
             console.log(response.currency);
@@ -48,7 +46,7 @@ class PaymentDomain {
         var orderId = req.body.orderId;
         var paymentId = req.body.paymentId;
         var body = orderId + "|" + paymentId;
-        var expectedSignature = crypto.createHmac('sha256', secret_key).update(body.toString()).digest("hex");
+        var expectedSignature = crypto.createHmac('sha256', secretkey!).update(body.toString()).digest("hex");
         console.log("sig", req.body.razorpay_signature);
         console.log("sig", req.body.expectedSignature);
         var response = { status: "failure" };
