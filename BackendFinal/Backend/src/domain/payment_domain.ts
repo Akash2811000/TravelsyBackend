@@ -19,7 +19,7 @@ class PaymentDomain {
     async createOrder(req: Request, res: Response) {
         let amount = req.body.amount;
         const options = {
-            amount: amount,
+            amount: amount * 100,
             currency: 'INR',
             // receipt: "order_rcptid_11", // any unique id
         }
@@ -32,7 +32,7 @@ class PaymentDomain {
             res.json({
                 order_id: response.id,
                 currency: response.currency,
-                amount: response.amount
+                amount: response.amount / 100
             })
         } catch (error: any) {
             res.status(400).send('Unable to create order');
