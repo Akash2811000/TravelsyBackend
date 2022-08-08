@@ -48,12 +48,12 @@ class PaymentDomain {
         var orderId = req.body.orderId;
         var paymentId = req.body.paymentId;
         var body = orderId + "|" + paymentId;
-        var expectedSignature = crypto.createHmac('sha256',secret_key).update(body.toString()).digest("hex");
-        console.log("sig" , req.body.razorpay_signature);
-        console.log("sig" , req.body.expectedSignature);
-        var response = {status : "failure"};
-        if(expectedSignature === req.body.razorpay_signature){
-            response = {status : "sucess"};
+        var expectedSignature = crypto.createHmac('sha256', secret_key).update(body.toString()).digest("hex");
+        console.log("sig", req.body.razorpay_signature);
+        console.log("sig", req.body.expectedSignature);
+        var response = { status: "failure" };
+        if (expectedSignature === req.body.razorpay_signature) {
+            response = { status: "sucess" };
             res.send(response);
         }
 
