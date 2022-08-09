@@ -265,8 +265,6 @@ class HotelDomain {
             console.log(avilHotelId);
 
             if (avilHotelId != null) {
-                var pageSize = q.pageSize ? parseInt(q.pageSize) : 0;
-                var page = q.page ? parseInt(q.page) : 0;
                 var ratingparams = q.rating.split(",").map(Number);
                 var priceparams = q.price.split("-").map(Number);
                 var flag: boolean = false;
@@ -287,7 +285,7 @@ class HotelDomain {
 
                                 },
                                 // { $skip : pageSize * page },
-                                 { $limit : 1 },
+                                 
                                 
                                 {
                                     $lookup: {
@@ -310,6 +308,7 @@ class HotelDomain {
                                         'Images': "$Images"
                                     }
                                 },
+                               
                                 ]
                             )
                         } else {

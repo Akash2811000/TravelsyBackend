@@ -1,4 +1,6 @@
 import express, { Express, Request, Response } from 'express';
+
+import { Usermodel } from '../model/users';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import { Razorpay } from 'razorpay-typescript';
@@ -9,8 +11,8 @@ var secretkey = process.env.KEY_SECRET;
 var keyId = process.env.KEY_ID;
 const instance: Razorpay = new Razorpay({
     authKey: {
-        key_id :keyId??"keyId",
-        key_secret:secretkey??"secretkey"
+        key_id: keyId ?? "keyId",
+        key_secret: secretkey ?? "secretkey"
     },
 });
 //const secret_key = 'yCKG9zsdIoWft58QwrYxjf1G'
@@ -21,19 +23,23 @@ class PaymentDomain {
         const options = {
             amount: amount * 100,
             currency: 'INR',
-            // receipt: "order_rcptid_11", // any unique id
         }
         console.log(options);
         try {
-            console.log(instance)
+            var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+            var uid: string = reqData.uid;
+            var userData = await Usermodel.find({ _id: uid }).select("-__v");
             const response = await instance.orders.create(options);
-            console.log("hy");
-            console.log(response.currency);
-            res.json({
+            var orderData = {
                 order_id: response.id,
                 currency: response.currency,
-                amount: response.amount / 100
-            })
+                amount: response.amount / 100,
+                user_name: userData[0].user_name,
+                user_email: userData[0].user_email,
+                user_phone_number: userData[0].user_phone_number,
+            }
+            console.log(orderData);
+            res.send(orderData)
         } catch (error: any) {
             res.status(400).send('Unable to create order');
         }
@@ -56,6 +62,8 @@ class PaymentDomain {
         }
 
     }
+
+    
 }
 
 export { PaymentDomain };
