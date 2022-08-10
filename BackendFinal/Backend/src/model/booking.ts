@@ -16,7 +16,6 @@ const BookingSchema = new mongoose.Schema({
         gst : {type : Number},
         total_price : {type : Number},
     }
-    
 })
 
 const bookingmodel = mongoose.model('bookings',BookingSchema);

@@ -65,7 +65,7 @@ class HotelDomain {
         try {
 
             var hotelData = await hotelmodel.aggregate([
-                { $match: { rating: { $gte: 5 } } },
+                { $match: { rating: { $gte: 4 } } },
                 { $sample: { size: parseInt(req.params.imagelimit) } },
                 {
                     $lookup: {
@@ -133,7 +133,6 @@ class HotelDomain {
                         'Images': "$Images"
                     }
                 },
-
             ]);
             if (hoteBySerch.length == 0) {
                 res.status(StatusCode.Sucess).send([])
