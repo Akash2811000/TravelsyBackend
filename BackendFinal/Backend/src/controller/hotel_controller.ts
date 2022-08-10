@@ -26,9 +26,7 @@ class HotelController {
         await hoteldomain.getParticularHotel(req, res);
     }
 
-
     //hotel list and filter hotel list api
-
     static async getHotelFilterList (req:Request , res : Response){
         const hoteldomain = new HotelDomain();
         await hoteldomain.getHotelFilterList(req,res);
