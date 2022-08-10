@@ -26,7 +26,10 @@ class HotelController {
         await hoteldomain.getParticularHotel(req, res);
     }
 
+<<<<<<< HEAD
     //hotel list and filter hotel list api
+=======
+>>>>>>> b4f6f090f9fca7475302e1e63c610fca6608ea7e
     static async getHotelFilterList (req:Request , res : Response){
         const hoteldomain = new HotelDomain();
         await hoteldomain.getHotelFilterList(req,res);
@@ -40,5 +43,4 @@ router.get('/image/:imagelimit', HotelController.getHotelImage);
 router.get('/:hotelsearch', HotelController.getHotelBySearch);
 router.get('/gethotel/getsinglehotel/:hotel_id', HotelController.getHotelPerticular);
 router.get('/gethotellist/gethotelfilterlist',HotelController.getHotelFilterList);
-
 export { router };
