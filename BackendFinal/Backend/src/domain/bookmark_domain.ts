@@ -43,8 +43,12 @@ class BookmarkDomain {
 
     async userBookmark(req: Request, res: Response) {
         try {
-            var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-            var uid = reqData.uid;
+            // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+            // var uid = reqData.uid;
+            var q: any = req.query;
+            var pageSize:any = q.pagesize ? parseInt(q.pagesize) : 0;
+            var page:any = q.page ? parseInt(q.page) : 0;
+            var uid="sPe2V49ZamU7G5tg3snHDwSmzGt1"
             var resImageData: any;
             var wishList: any = [];
             var bookmarkData = await bookmarkmodel.find({ user_id: uid }, { "hotel_id": 1 }).populate({ path: "hotel_id", model: hotelmodel, select: { "hotel_name": 1, "address": 1, "price": 1 } });

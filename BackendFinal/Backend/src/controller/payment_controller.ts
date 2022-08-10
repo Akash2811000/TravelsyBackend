@@ -15,7 +15,6 @@ class PaymentController {
     }
 }
 
-
 router.post("/",PaymentController.createOrder);
 router.post("/verifypayment" , PaymentController.verifyPayment);
 

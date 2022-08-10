@@ -1,6 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 
 import { Usermodel } from '../model/users';
+import { BookingDomain } from './booking_domain';
 import * as dotenv from 'dotenv';
 dotenv.config();
 import { Razorpay } from 'razorpay-typescript';
@@ -38,14 +39,18 @@ class PaymentDomain {
                 user_email: userData[0].user_email,
                 user_phone_number: userData[0].user_phone_number,
             }
-            console.log(orderData);
-            res.send(orderData)
+            const bookIngDomain = new BookingDomain();
+            var resBooking=await bookIngDomain.bookingFreeze(req,res,req.body.cin,req.body.cout,req.body.room_id,req.body.hotel_id);
+            if(resBooking!=0){
+                console.log(orderData);
+                res.send(orderData)
+                setTimeout(bookIngDomain.bookingFreezFail, 20000, resBooking);
+            }else{
+                res.status(400).send('faile');    
+            }   
         } catch (error: any) {
             res.status(400).send('Unable to create order');
         }
-
-
-
     }
 
     async verifypayment(req: Request, res: Response) {

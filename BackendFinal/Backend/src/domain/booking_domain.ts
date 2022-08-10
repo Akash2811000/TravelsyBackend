@@ -8,8 +8,8 @@ import express, { Express, Request, Response } from 'express'
 
 class BookingDomain {
     async addBooking(req: Request, res: Response) {
-     var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-    //    var uid = "SyNy85NLZRhAwZmgUjbFWQYoKbA2";
+        var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+        //    var uid = "SyNy85NLZRhAwZmgUjbFWQYoKbA2";
         try {
             var nextID: any = await bookingmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
             var noOfRoom: Number = req.body.room_id.length
@@ -35,35 +35,10 @@ class BookingDomain {
 
             }
             console.log(bookIngData);
-            // var sum = 0;
-            // var rommIdFromReq: any = (req.body.room_id);
-            // console.log(rommIdFromReq);
-            // var getHotelRoom = await hotelmodel.find({ _id: req.body.hotel_id })
-            // var roomPrice: any = [];
-            // getHotelRoom.forEach((e: any) => {
-            //     e.room.forEach((d: any) => {
-            //         if (rommIdFromReq.includes(d.room_id)) {
-            //             roomPrice.push(d.price);
-            //             sum = sum + d.price;
-            //         }
-            //     })
-            // })
-            // const getHotelRoomPrice: number = sum;
-            // console.log(getHotelRoom);
-            // console.log('price ' + getHotelRoomPrice);
-            // var totalPrize = (req.body.price.total_price);
-            // var noOfNight = (req.body.price.number_of_nights);
-            // var roomGstPrice = ((18 / 100) * (getHotelRoomPrice * noOfNight));
-            // var roomDiscountPrice = ((getHotelRoomPrice * noOfNight) + roomGstPrice) * 0.05;
-            // console.log(`gst ${roomGstPrice}`);
-            // console.log(`discount ${roomDiscountPrice}`);
-            // var roomTotalPrize = ((getHotelRoomPrice * noOfNight) - roomDiscountPrice + roomGstPrice)
-            // console.log('price ' + roomTotalPrize);
-            // console.log('total ' + totalPrize);
-            // if (roomTotalPrize == totalPrize) {
+
             var bookedData = new bookingmodel(bookIngData);
             console.log(bookedData);
-          //  await bookedData.save();
+            //  await bookedData.save();
             res.status(StatusCode.Sucess).send("Booking Success")
             res.end();
             // }
@@ -83,7 +58,7 @@ class BookingDomain {
             const hotelId: string = q.hotel_id;
             const cIn: Date = new Date(q.cin);
             const cOut: Date = new Date(q.cout);
-            const noofroom=q.no_of_room;
+            const noofroom = q.no_of_room;
             const bookedId: any = [];
             const unAvailableRoomDupId: any = [];
             const unAvailableRoomId: any = [];
@@ -222,9 +197,14 @@ class BookingDomain {
 
     async userBookingHistory(req: Request, res: Response) {
         try {
-            var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-            var uid: String = reqData.uid;
-            var bookingData = await bookingmodel.find({ "user_id": uid });
+            // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+            // var uid: String = reqData.uid;
+            var q: any = req.query;
+            var pageSize:any = q.pagesize ? parseInt(q.pagesize) : 0;
+            var page:any = q.page ? parseInt(q.page) : 0;
+            var uid="sPe2V49ZamU7G5tg3snHDwSmzGt1"
+            var bookingData = await bookingmodel.find({ "user_id": uid }).limit(parseInt(pageSize)).skip(parseInt(pageSize)*parseInt(page));
+            var hotelIdList: any = [];
             var hotelIdList: any = [];
             var bookingHistoryData: any = [];
             if (bookingData != null) {
@@ -540,8 +520,59 @@ class BookingDomain {
 
     }
 
+    async bookingFreeze(req: Request, res: Response, cIn: string, cOut: string, roomId: any, hotelId: any) {
+        var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+        try {
+            if (roomId.length != 0) {
+                var cin=new Date(cIn);
+                var cout=new Date(cOut);
+                var nextID: any = await bookingmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+                var diff = Math.abs(cout.getTime() - cin.getTime());
+                var diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+                var bookIngData: object = {
+                    _id: nextID?._id == undefined ? 1 : Number(nextID?.id) + 1,
+                    user_id: reqData.uid,
+                    hotel_id: hotelId,
+                    no_of_room: roomId.length,
+                    room_id: roomId,
+                    checkin_date: new Date(cin),
+                    checkout_date: new Date(cout),
+                    price: {
+                        number_of_nights: diffDays,
+                        room_price: 0,
+                        gst: 0,
+                        discount: 0,
+                        total_price: 0
+                    },
+                    status: "pending",
+                    paymentId: null,
+                    orderId: null
 
+                }
+                var bookedData = new bookingmodel(bookIngData);
+                console.log(bookedData);
+                await bookedData.save(); 
+                return nextID?._id == undefined ? 1 : Number(nextID?.id) + 1;
+            }else{
+                return 0;
+            }
+        } catch (err: any) {
+            res.status(StatusCode.Server_Error).send(err.message);
+            res.end();
+        }
+    }
 
+    async bookingFreezFail(bookingId:any){
+
+        try{
+            console.log('timer');
+            await bookingmodel.deleteOne({$and:[{_id:bookingId},{status:"pending"}]});
+            console.log('deleted')
+        }catch(e:any){
+            
+        }
+
+    }
 
 }
 
