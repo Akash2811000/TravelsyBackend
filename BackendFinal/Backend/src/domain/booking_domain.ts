@@ -8,8 +8,8 @@ import express, { Express, Request, Response } from 'express'
 
 class BookingDomain {
     async addBooking(req: Request, res: Response) {
-     var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-    //    var uid = "SyNy85NLZRhAwZmgUjbFWQYoKbA2";
+        var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+        //    var uid = "SyNy85NLZRhAwZmgUjbFWQYoKbA2";
         try {
             var nextID: any = await bookingmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
             var noOfRoom: Number = req.body.room_id.length
@@ -63,7 +63,7 @@ class BookingDomain {
             // if (roomTotalPrize == totalPrize) {
             var bookedData = new bookingmodel(bookIngData);
             console.log(bookedData);
-          //  await bookedData.save();
+            //  await bookedData.save();
             res.status(StatusCode.Sucess).send("Booking Success")
             res.end();
             // }
@@ -88,7 +88,10 @@ class BookingDomain {
             const unAvailableRoomId: any = [];
             const roomDetailList: any = [];
             var hotelName: any;
-
+            //finding mattressprize
+            var hotelMattress = await hotelmodel.findOne({ _id: parseInt(hotelId) }).select("mattressPrice");
+            var hotelMattressPrize = hotelMattress?.mattressPrice ?? 0;
+            console.log(hotelMattressPrize);
             //booking table check checkIn and checkOut match with user checkIn & checkOut date
             const resData = await bookingmodel.find({
                 $and: [{ hotel_id: hotelId },
@@ -119,7 +122,7 @@ class BookingDomain {
                     "hotel_id": 1,
                     "room_id": 1
                 })
-                console.log(unAvailableBooking);
+                console.log("this is unavilablebooking " + unAvailableBooking);
                 if (unAvailableBooking != null) {
                     //Available roomId 
                     unAvailableBooking.forEach(e => {
@@ -133,20 +136,43 @@ class BookingDomain {
                             unAvailableRoomId.push(item);
                         }
                     })
-                    console.log(unAvailableRoomId);
+                    console.log("this unAvailableRoomId " + unAvailableRoomId);
                     //get hotel all room Id and subtract it from unAvailable
                     const hRoom = await hotelmodel.find({ _id: hotelId });
                     hRoom.forEach(e => {
                         hotelName = e.hotel_name;
                         e.room.forEach(c => {
-                            if (unAvailableRoomId.includes(c.room_id)) {
+                            if (!unAvailableRoomId.includes(c.room_id)) {
 
-                            } else {
                                 roomDetailList.push(c);
                             }
                         });
                     })
-                    console.log(roomDetailList.length)
+                    const newDeluxIDList: any = [];
+                    const newsemiDeluxIDList: any = [];
+                    const newSuperDeluxIDList: any = [];
+                    console.log("this avilable room list " + roomDetailList);
+                    roomDetailList.forEach((a: any) => {
+                        console.log(a.room_id);
+                        console.log(a.room_type);
+                        console.log(newDeluxIDList);
+                        if (a.room_type == "Deluxe") {
+                            newDeluxIDList.push(a.room_id);
+                        } 
+                        else if (a.room_type == "Semi-Deluxe") {
+                            newsemiDeluxIDList.push(a.room_id);
+                        }
+                        else if (a.room_type == "Super-Deluxe") {
+                            newSuperDeluxIDList.push(a.room_id);
+                        }
+                       
+                    });
+
+                    console.log("newDeluxIDList",  newDeluxIDList);
+                    console.log("newsemiDeluxIDList",  newsemiDeluxIDList);
+                    console.log("newSuperDeluxIDList", newSuperDeluxIDList);
+
+                    
                     if (roomDetailList.length != 0) {
                         //Room Image query
                         const roomImageData: any = [];
@@ -166,11 +192,15 @@ class BookingDomain {
                                 }
                                 );
                             })
-
                         );
+
+                        
+
                         const deluxeList: any = [];
                         const semiDeluxeList: any = [];
                         const superDeluxeList: any = []
+
+
 
                         roomImageData.forEach((e: any) => {
                             if (e.room_type == "Deluxe") {
@@ -184,15 +214,20 @@ class BookingDomain {
                         var resultData = {
                             "hotel_id": hotelId,
                             "hotel_name": hotelName,
+                            "hotelMattressPrize": hotelMattressPrize,
                             "deluxe": deluxeList,
                             "semi-deluxe": semiDeluxeList,
                             "super-deluxe": superDeluxeList
                         };
+
+
+
                         res.status(StatusCode.Sucess).send(resultData);
                     } else {
                         var resError = {
                             "hotel_id": hotelId,
                             "hotel_name": hotelName,
+                            "hotelMattressPrize": hotelMattressPrize,
                             "deluxe": [],
                             "semi-deluxe": [],
                             "super-deluxe": []
@@ -478,10 +513,72 @@ class BookingDomain {
         }
     }
 
+    // async getRoomPrize(req: Request, res: Response) {
+    //     var query: any = req.query;
+    //     var roomid: any = query.roomid.split(",").map(Number);
+    //     var hotelid: any = query.hotelid
+    //     var getHotelRoom = await hotelmodel.find({ _id: hotelid })
+    //     var hotelId = parseInt(getHotelRoom[0]._id.toString());
+    //     var hotelName = getHotelRoom[0].hotel_name.toString();
+    //     var address = getHotelRoom[0].address?.address_line;
+    //     var rating = parseInt(getHotelRoom[0].rating.toString());
+    //     var roomPrice: any = [];
+    //     var sum = 0;
+    //     var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+    //     var uid: string = reqData.uid;
+    //     console.log(uid);
+    //     var userData = await Usermodel.find({ _id: uid }).select("-__v");
+    //     console.log(userData);
+
+    //     getHotelRoom.forEach((e: any) => {
+    //         e.room.forEach((d: any) => {
+    //             if (roomid.includes(d.room_id)) {
+    //                 roomPrice.push(d.price);
+    //                 sum = sum + d.price;
+    //             }
+    //         })
+    //     })
+
+    //     var checkInDate = new Date(query.cin);
+    //     var checkOutDate = new Date(query.cout);
+    //     var diff = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
+    //     var diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+    //     const getHotelRoomPrice: number = sum;
+    //     var roomPrizwWithDays = getHotelRoomPrice * diffDays;
+    //     var gstPercentage = 18;
+    //     var discountPercentage = 5;
+    //     var roomPriceWithGst = (roomPrizwWithDays * (gstPercentage / 100));
+    //     var discountPrice = (roomPrizwWithDays + roomPriceWithGst) * (discountPercentage / 100);
+    //     var totalRoomPrice = (roomPrizwWithDays + roomPriceWithGst - discountPrice);
+    //     var roomPriceData = {
+    //         hotelid: hotelId,
+    //         hotelName: hotelName,
+    //         address: address,
+    //         rating: rating,
+    //         checkInDate: query.cin,
+    //         checkOutDate: query.cout,
+    //         roomId: roomid,
+    //         roomPrice: Math.floor(getHotelRoomPrice),
+    //         noOfDays: diffDays,
+    //         subTotal: Math.floor(roomPrizwWithDays),
+    //         gstPercentage: gstPercentage,
+    //         discountPercentage: discountPercentage,
+    //         gst: Math.floor(roomPriceWithGst),
+    //         offer: Math.floor(discountPrice),
+    //         total: Math.floor(totalRoomPrice)
+
+    //     }
+    //     res.send(roomPriceData);
+
+
+
+    // }
+
     async getRoomPrize(req: Request, res: Response) {
         var query: any = req.query;
         var roomid: any = query.roomid.split(",").map(Number);
         var hotelid: any = query.hotelid
+        var countOfMattress = query.countOfMattress
         var getHotelRoom = await hotelmodel.find({ _id: hotelid })
         var hotelId = parseInt(getHotelRoom[0]._id.toString());
         var hotelName = getHotelRoom[0].hotel_name.toString();
@@ -489,12 +586,9 @@ class BookingDomain {
         var rating = parseInt(getHotelRoom[0].rating.toString());
         var roomPrice: any = [];
         var sum = 0;
-        var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-        var uid: string = reqData.uid;
-        console.log(uid);
-        var userData = await Usermodel.find({ _id: uid }).select("-__v");
-        console.log(userData);
-
+        var hotelMattress = await hotelmodel.findOne({ _id: hotelid }).select("mattressPrice");
+        console.log(hotelMattress!.mattressPrice);
+        var hotelMattressPrize = hotelMattress?.mattressPrice ?? 0;
         getHotelRoom.forEach((e: any) => {
             e.room.forEach((d: any) => {
                 if (roomid.includes(d.room_id)) {
@@ -503,13 +597,16 @@ class BookingDomain {
                 }
             })
         })
-
+        console.log(countOfMattress);
+        var totalMattressPrize = hotelMattressPrize * countOfMattress;
+        console.log(totalMattressPrize);
         var checkInDate = new Date(query.cin);
         var checkOutDate = new Date(query.cout);
         var diff = Math.abs(checkOutDate.getTime() - checkInDate.getTime());
         var diffDays = Math.ceil(diff / (1000 * 3600 * 24));
-        const getHotelRoomPrice: number = sum;
-        var roomPrizwWithDays = getHotelRoomPrice * diffDays;
+        var getHotelRoomPrice = sum;
+        var totalHotelRoomPrize = getHotelRoomPrice + totalMattressPrize;
+        var roomPrizwWithDays = totalHotelRoomPrize * diffDays;
         var gstPercentage = 18;
         var discountPercentage = 5;
         var roomPriceWithGst = (roomPrizwWithDays * (gstPercentage / 100));
@@ -524,6 +621,8 @@ class BookingDomain {
             checkOutDate: query.cout,
             roomId: roomid,
             roomPrice: Math.floor(getHotelRoomPrice),
+            noOfmatress: countOfMattress,
+            matressPrize: Math.floor(totalMattressPrize),
             noOfDays: diffDays,
             subTotal: Math.floor(roomPrizwWithDays),
             gstPercentage: gstPercentage,
