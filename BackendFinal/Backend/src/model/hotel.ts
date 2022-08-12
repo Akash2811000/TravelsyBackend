@@ -9,8 +9,8 @@ const HotelSchema = new mongoose.Schema({
         pincode : {type: Number},
         city_id: { type: Number, ref: 'cities' },
         location: {
-            longitude: { type: String, required: true },
-            latitude: { type: String, required: true }
+            longitude: { type: Number, required: true },
+            latitude: { type: Number, required: true }
         }
     },
     rating: {type: Number ,required: true },

@@ -211,8 +211,9 @@ class BookingDomain {
 
     async userBookingHistory(req: Request, res: Response) {
         try {
-            var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-            var uid: String = reqData.uid;
+            // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+            // var uid: String = reqData.uid;
+            var uid = "7mSnCFJ7zkb5LbwbqBwm4PmuScq1";
             var bookingData = await bookingmodel.find({ "user_id": uid });
             var hotelIdList: any = [];
             var bookingHistoryData: any = [];
@@ -533,7 +534,11 @@ class BookingDomain {
         var query: any = req.query;
         var roomid: any = query.roomid.split(",").map(Number);
         var hotelid: any = query.hotelid
-        var countOfMattress = query.countOfMattress
+        var adults: any = query.adults
+        console.log("roomid", roomid.length);
+        var noOfPersonforRoom = ((roomid.length) * 2);
+        var countOfMattress: any = ((adults - noOfPersonforRoom) < 0) ? 0 : (adults - noOfPersonforRoom);
+        console.log("countOfMattress", countOfMattress);
         var getHotelRoom = await hotelmodel.find({ _id: hotelid })
         var hotelId = parseInt(getHotelRoom[0]._id.toString());
         var hotelName = getHotelRoom[0].hotel_name.toString();
@@ -590,6 +595,22 @@ class BookingDomain {
         res.send(roomPriceData);
 
 
+
+    }
+
+
+
+    //get allbooking
+    async getAllBookingAdmin(req: Request, res: Response) {
+        var pageSize: any = req.query.pagesize;
+        var page: any = req.query.page;
+        var allBookingData = await bookingmodel.find({}).populate("user_id").limit(parseInt(pageSize)).skip(parseInt(pageSize) * parseInt(page));
+        if (allBookingData) {
+            res.send(allBookingData);
+        }
+        else {
+            res.send([]);
+        }
 
     }
 

@@ -268,7 +268,7 @@ class HotelDomain {
                 var ratingparams = q.rating.split(",").map(Number);
                 var priceparams = q.price.split("-").map(Number);
                 var flag: boolean = false;
-                q.price.length==0 ? (null) : (priceparams.length == 1 ? (priceparams[1]=100000) : (flag = false));
+                q.price.length == 0 ? (null) : (priceparams.length == 1 ? (priceparams[1] = 100000) : (flag = false));
                 var featuresparams = q.features.split(",");
                 var resData: any = [];
                 console.log(ratingparams);
@@ -278,15 +278,15 @@ class HotelDomain {
                     avilHotelId.map(async (e: any) => {
                         if (q.rating.length == 0 && q.price.length == 0 && q.features.length == 0) {
                             console.log('if')
-                        
+
                             var hotelfilterlist = await hotelmodel.aggregate(
                                 [{
                                     $match: { _id: e },
 
                                 },
                                 // { $skip : pageSize * page },
-                                 
-                                
+
+
                                 {
                                     $lookup: {
                                         from: "images",
@@ -308,7 +308,7 @@ class HotelDomain {
                                         'Images': "$Images"
                                     }
                                 },
-                               
+
                                 ]
                             )
                         } else {
@@ -363,6 +363,108 @@ class HotelDomain {
 
         }
     }
+
+
+    // adding hotel 
+    async addHotel(req: Request, res: Response) {
+        var newHotelData = req.body;
+        var nextID: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+        var last = await hotelmodel.find({}).sort({ _id: -1 }).limit(1);
+        console.log(last[0]._id);
+        var newId = last[0]._id;
+        newHotelData._id = newId + 1;
+        // var latitude = newHotelData.address.location.latitude;
+        // var longitude = newHotelData.address.location.longitude;
+        // latitude = parseFloat(latitude);
+        // longitude = parseFloat(longitude);
+        // console.log(typeof(newHotelData.address.location.latitude))
+        var data = new hotelmodel(newHotelData);
+        console.log(data);
+        var hoteId = {
+            "hotel_id": newHotelData._id
+        }
+        try {
+            await data.save();
+            res.send(hoteId);
+        }
+        catch (err: any) {
+            res.send(err.message);
+        }
+    }
+
+    //adding image
+    async addhotelImage(req: Request, res: Response) {
+        var nextID: any = await imagemodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+        var hotelId: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+        req.body._id = nextID._id + 1;
+        console.log(req.body._id);
+        req.body.hotel_id = hotelId._id
+        var imagearray: any = req.body.image_url;
+        var imageData: any = [];
+        var i: any;
+        for (i = 0; i < imagearray.length; i++) {
+            console.log("this i", i);
+            console.log("this is image 1", imagearray[i])
+            console.log(req.body._id + i);
+            var images = {
+                "_id": req.body._id + i,
+                "image_url": imagearray[i],
+                "hotel_id": req.body.hotel_id,
+                "room_id": (req.body.room_id == null) ? null : req.body.room_id,
+                "tour_id": null,
+                "user_id": null
+            }
+            imageData.push(images)
+
+        }
+        console.log(imageData);
+        imagemodel.insertMany(imageData, function (err: any, result: any) {
+            if (err) throw err;
+            res.send("Image sucessfully added");
+        });
+
+    }
+
+
+    //delete hotel 
+    async deleteHotel(req: Request, res: Response) {
+
+        var hotelData = await hotelmodel.findOne({ _id: req.params.hoteId })
+        // console.log(hotelData!.length);
+        if (hotelData) {
+            hotelmodel.deleteOne({ _id: req.params.hoteId }, function (err) {
+                if (!err) {
+                   //res.send("Delete sucesffully");
+                   imagemodel.deleteMany({ hotel_id: req.params.hoteId }, function (err) {
+                    if (!err) {
+                       res.send("hotel and image Delete sucesffully");
+                       res.end();
+                    }
+                    else {
+                        res.send("Error in deleeting");
+                        res.end();
+                    }
+                });
+                }
+                else {
+                    res.send("Error in deleeting");
+                    res.end();
+                }
+            });
+           
+            
+        } else {
+            res.send("Can not find hotel");
+            res.end();
+        }
+    }
+
+
+
+
+
+
+
 
 
 
