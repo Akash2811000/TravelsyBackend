@@ -378,8 +378,63 @@ class HotelDomain {
         // latitude = parseFloat(latitude);
         // longitude = parseFloat(longitude);
         // console.log(typeof(newHotelData.address.location.latitude))
+
+        var room: any = [];
+
+        var noOfDelux = req.body.noofdeluxe;
+        var noOfSuperDeluxe = req.body.noodsuperdeluxe;
+        var noOfSemiDeluxe = req.body.noofsemideluxe;
+
+        console.log(noOfDelux);
+
+        var i: any;
+        for (i = 0; i < noOfDelux; i++) {
+            var deluxRoomDetails = {
+                "room_id": ((newHotelData._id) * 100) + (i + 1),
+                "room_type": "Deluxe",
+                "room_size": req.body.deluxesize,
+                "bed_size": req.body.deluxebadsize,
+                "max_capacity": req.body.deluxemaxcapacity,
+                "price": req.body.deluxeprice,
+                "features": req.body.deluxefeatures,
+                "description": req.body.deluxedescription
+            }
+            room.push(deluxRoomDetails);
+        }
+
+        for (i = 0; i < noOfSemiDeluxe; i++) {
+            var semideluxRoomDetails = {
+                "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfDelux),
+                "room_type": "Semi-Deluxe",
+                "room_size": req.body.semideluxesize,
+                "bed_size": req.body.semideluxebadsize,
+                "max_capacity": req.body.semideluxemaxcapacity,
+                "price": req.body.semideluxeprice,
+                "features": req.body.semideluxefeatures,
+                "description": req.body.semideluxedescription
+            }
+            room.push(semideluxRoomDetails);
+        }
+
+        for (i = 0; i < noOfSuperDeluxe; i++) {
+            var superdeluxRoomDetails = {
+                "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfSemiDeluxe + noOfDelux),
+                "room_type": "Super-Deluxe",
+                "room_size": req.body.superdeluxesize,
+                "bed_size": req.body.superdeluxebadsize,
+                "max_capacity": req.body.superdeluxemaxcapacity,
+                "price": req.body.superdeluxeprice,
+                "features": req.body.superdeluxefeatures,
+                "description": req.body.superdeluxedescription
+            }
+            room.push(superdeluxRoomDetails);
+        }
+
+
+        newHotelData.room = room;
+
         var data = new hotelmodel(newHotelData);
-        console.log(data);
+        //console.log(data);
         var hoteId = {
             "hotel_id": newHotelData._id
         }
@@ -434,25 +489,25 @@ class HotelDomain {
         if (hotelData) {
             hotelmodel.deleteOne({ _id: req.params.hoteId }, function (err) {
                 if (!err) {
-                   //res.send("Delete sucesffully");
-                   imagemodel.deleteMany({ hotel_id: req.params.hoteId }, function (err) {
-                    if (!err) {
-                       res.send("hotel and image Delete sucesffully");
-                       res.end();
-                    }
-                    else {
-                        res.send("Error in deleeting");
-                        res.end();
-                    }
-                });
+                    //res.send("Delete sucesffully");
+                    imagemodel.deleteMany({ hotel_id: req.params.hoteId }, function (err) {
+                        if (!err) {
+                            res.send("hotel and image Delete sucesffully");
+                            res.end();
+                        }
+                        else {
+                            res.send("Error in deleeting");
+                            res.end();
+                        }
+                    });
                 }
                 else {
                     res.send("Error in deleeting");
                     res.end();
                 }
             });
-           
-            
+
+
         } else {
             res.send("Can not find hotel");
             res.end();
