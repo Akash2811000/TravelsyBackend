@@ -5,6 +5,7 @@ import { StatusCode } from "../statuscode";
 import { imagemodel } from "../model/image";
 import { BookingDomain } from "../domain/booking_domain";
 import { bookmarkmodel } from "../model/bookmark";
+import { Usermodel } from '../model/users';
 import express, { Express, Request, Response } from 'express'
 
 class HotelDomain {
@@ -48,7 +49,6 @@ class HotelDomain {
         }
     }
 
-    //get hotel image based on ui send limit of needed image
     //get hotel image based on ui send limit of needed image
 
     async getHotelImage(req: Request, res: Response) {
@@ -367,6 +367,7 @@ class HotelDomain {
 
     // adding hotel 
     async addHotel(req: Request, res: Response) {
+
         var newHotelData = req.body;
         var nextID: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
         var last = await hotelmodel.find({}).sort({ _id: -1 }).limit(1);
@@ -436,7 +437,8 @@ class HotelDomain {
         var data = new hotelmodel(newHotelData);
         //console.log(data);
         var hoteId = {
-            "hotel_id": newHotelData._id
+            "hotel_id": newHotelData._id,
+            "message ": "Your hotel data sucefully saved"
         }
         try {
             await data.save();
@@ -449,43 +451,111 @@ class HotelDomain {
 
     //adding image
     async addhotelImage(req: Request, res: Response) {
+        var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+        var uid: string = reqData.uid;
+        var userData = await Usermodel.find({ _id: uid }).select("-__v");
+        if (userData[0].user_type == "admin") {
+
+            var nextID: any = await imagemodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+            var hotelId: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+            req.body._id = nextID._id + 1;
+            console.log(req.body._id);
+            req.body.hotel_id = hotelId._id
+            var imagearray: any = req.body.image_url;
+            var imageData: any = [];
+            var i: any;
+            for (i = 0; i < imagearray.length; i++) {
+                console.log("this i", i);
+                console.log("this is image 1", imagearray[i])
+                console.log(req.body._id + i);
+                var images = {
+                    "_id": req.body._id + i,
+                    "image_url": imagearray[i],
+                    "hotel_id": req.body.hotel_id,
+                    "room_id": (req.body.room_id == null) ? null : req.body.room_id,
+                    "tour_id": null,
+                    "user_id": null
+                }
+                imageData.push(images)
+
+            }
+            console.log(imageData);
+            res.send(imageData);
+            imagemodel.insertMany(imageData, function (err: any, result: any) {
+                if (err) throw err;
+                res.send("Image sucessfully added");
+            });
+        }
+        else {
+            res.send("you are not authorize")
+        }
+
+    }
+
+    //adding deluxroomimage 
+    async addRoomImage(req: Request, res: Response, roomtype: String) {
         var nextID: any = await imagemodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
         var hotelId: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
         req.body._id = nextID._id + 1;
-        console.log(req.body._id);
-        req.body.hotel_id = hotelId._id
+        var roomId: any = [];
+        var roomdata = await hotelmodel.findOne({ _id: hotelId }).select("room");
+        roomdata!.room.forEach((e: any) => {
+            if (e.room_type == roomtype) {
+                roomId.push(e.room_id);
+            }
+        });
+
         var imagearray: any = req.body.image_url;
         var imageData: any = [];
         var i: any;
-        for (i = 0; i < imagearray.length; i++) {
-            console.log("this i", i);
-            console.log("this is image 1", imagearray[i])
-            console.log(req.body._id + i);
-            var images = {
-                "_id": req.body._id + i,
-                "image_url": imagearray[i],
-                "hotel_id": req.body.hotel_id,
-                "room_id": (req.body.room_id == null) ? null : req.body.room_id,
-                "tour_id": null,
-                "user_id": null
-            }
-            imageData.push(images)
+        var j: any;
 
+
+        for (j = 0; j < roomId.length; j++) {
+            for (i = 0; i < imagearray.length; i++) {
+                var images = {
+                    "image_url": imagearray[i],
+                    "hotel_id": req.body.hotel_id,
+                    "room_id": roomId[j],
+                    "tour_id": null,
+                    "user_id": null
+                }
+                imageData.push(images)
+
+            }
         }
-        console.log(imageData);
+        for (i = 0; i < imageData.length; i++) {
+            imageData[i]._id = nextID._id + i + 1;
+        }
+
         imagemodel.insertMany(imageData, function (err: any, result: any) {
             if (err) throw err;
             res.send("Image sucessfully added");
         });
-
     }
+
+
+
+    async addDeluxRoomImage(req: Request, res: Response) {
+        await this.addRoomImage(req, res, "Deluxe");
+    }
+
+    async addSuperDeluxRoomImage(req: Request, res: Response) {
+        await this.addRoomImage(req, res, "Super-Deluxe");
+    }
+
+
+    async addSemiDeluxRoomImage(req: Request, res: Response) {
+        await this.addRoomImage(req, res, "Semi-Deluxe");
+    }
+
+
 
 
     //delete hotel 
     async deleteHotel(req: Request, res: Response) {
 
         var hotelData = await hotelmodel.findOne({ _id: req.params.hoteId })
-        // console.log(hotelData!.length);
         if (hotelData) {
             hotelmodel.deleteOne({ _id: req.params.hoteId }, function (err) {
                 if (!err) {

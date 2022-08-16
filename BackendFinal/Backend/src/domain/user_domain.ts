@@ -23,7 +23,8 @@ class UserDomain {
                 user_name: decodedToken.name != null ? decodedToken.name : null,
                 user_email: decodedToken.email,
                 user_phone_number: decodedToken.phone_number != null ? decodedToken.phone_number : null,
-                user_image: decodedToken.picture != null ? decodedToken.picture : null
+                user_image: decodedToken.picture != null ? decodedToken.picture : null,
+                user_type : (decodedToken.email == 'travelsyadmin@gmail.com') ? "admin" : "normal" 
             }
             var data = new Usermodel(postData);
             console.log(data);

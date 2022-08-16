@@ -36,6 +36,25 @@ function verifyToken(req: any, res: any, next: any) {
     }
 }
 
+// //creating custom token
+// function creatToken (req: any , res :any ){
+//     const userId = 'some-uid';
+// const additionalClaims = {
+//   premiumAccount: true,
+// };
+
+// admin.auth()
+//   .createCustomToken(userId, additionalClaims)
+//   .then((customToken) => {
+//     return res.status(StatusCode.Sucess).json({ 
+//         message: customToken
+//     });
+//   })
+//   .catch((error) => {
+//     console.log('Error creating custom token:', error);
+//   });
+// }
+
 
 //check request method
 function checkRequest(req: any, res: any, next: any) {

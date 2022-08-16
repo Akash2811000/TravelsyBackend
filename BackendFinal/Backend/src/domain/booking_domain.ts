@@ -602,9 +602,51 @@ class BookingDomain {
 
     //get allbooking
     async getAllBookingAdmin(req: Request, res: Response) {
+        var q:any = req.query;
         var pageSize: any = req.query.pagesize;
         var page: any = req.query.page;
-        var allBookingData = await bookingmodel.find({}).populate("user_id").limit(parseInt(pageSize)).skip(parseInt(pageSize) * parseInt(page));
+        var hotelid = parseInt( q.hotelid);
+        //var allBookingData = await bookingmodel.find({}).populate("user_id").limit(parseInt(pageSize)).skip(parseInt(pageSize) * parseInt(page));
+        var allBookingData = await bookingmodel.aggregate([
+
+            {$match : {
+                hotel_id : hotelid
+            }},
+            
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user_id',
+                    foreignField: '_id',
+                    pipeline: [
+                        {
+                            $project: {
+                                _id: 1,
+                                user_name: 1,
+                                user_email: 1
+                            }
+                        }
+                    ],
+                    as: 'userdata'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'hotels',
+                    localField: 'hotel_id',
+                    foreignField: '_id',
+                    pipeline: [
+                        {
+                            $project: {
+                                _id: 1,
+                                hotel_name: 1
+                            }
+                        }
+                    ],
+                    as: 'hoteldata'
+                }
+            },
+        ]).skip((parseInt(pageSize) * parseInt(page))).limit(parseInt(pageSize))
         if (allBookingData) {
             res.send(allBookingData);
         }

@@ -47,7 +47,22 @@ class HotelController {
         await hoteldomain.deleteHotel(req,res);
     }
 
+    static async adddeluxeroomimage (req:Request , res : Response){
+        const hoteldomain = new HotelDomain();
+        await hoteldomain.addDeluxRoomImage(req,res);
+    }
+
     
+    static async addsuperdeluxeroomimage (req:Request , res : Response){
+        const hoteldomain = new HotelDomain();
+        await hoteldomain.addSuperDeluxRoomImage(req,res);
+    }
+
+
+    static async addsemideluxeroomimage (req:Request , res : Response){
+        const hoteldomain = new HotelDomain();
+        await hoteldomain.addSemiDeluxRoomImage(req,res);
+    }
 
 
 }
@@ -61,6 +76,8 @@ router.get('/gethotel/getsinglehotel/:hotel_id', HotelController.getHotelPerticu
 router.get('/gethotellist/gethotelfilterlist',HotelController.getHotelFilterList);
 router.post('/addhotel',HotelController.addHotel);
 router.post('/addhotelimage',HotelController.addHotelImage);
+router.post('/adddeluxeroomimage', HotelController.adddeluxeroomimage);
+router.post('/addsuperdeluxeroomimage', HotelController.addsuperdeluxeroomimage);
+router.post('/addsemideluxeroomimage', HotelController.addsemideluxeroomimage);
 router.delete('/deleteHotel/:hoteId', HotelController.deleteHotel);
-
 export { router };

@@ -1,7 +1,7 @@
 import express, { Express, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import * as dotenv from 'dotenv';
-import { verifyToken, checkRequest } from "./authentication/verify_token";
+import { verifyToken, checkRequest  } from "./authentication/verify_token";
 import * as admin from 'firebase-admin';
 import credential from "./travelproject22-6b9d4-firebase-adminsdk-2wiay-c9c1876710.json";
 import { LoggerMiddleware } from './middlewear/logger';
@@ -34,6 +34,8 @@ admin.initializeApp(
 
 // TOKEN VERIFICATION CALL
 //app.use(verifyToken, checkRequest);
+
+
 
 // ROOT LEVEL
 app.get('/', (req: Request, res: Response) => {
