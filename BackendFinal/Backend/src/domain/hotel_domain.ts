@@ -9,45 +9,7 @@ import { Usermodel } from '../model/users';
 import express, { Express, Request, Response } from 'express'
 
 class HotelDomain {
-    //Get All hotel list
-    async getAllHotel(req: Request, res: Response) {
-        try {
-            var hoteBySerch: any = await hotelmodel.aggregate([
-                {
-                    $lookup: {
-                        from: "images",
-                        localField: "_id",
-                        foreignField: "hotel_id",
-                        pipeline: [
-                            { $match: { room_id: null } }
-                        ],
-                        as: "Images",
-                    },
-                },
-                {
-                    "$project": {
-                        "hotel_id": "$_id",
-                        "hotel_name": "$hotel_name",
-                        "rating": "$rating",
-                        "address": "$address",
-                        "price": "$price",
-                        'Images': "$Images"
-                    }
-                },
-
-            ]);
-            if (hoteBySerch.length == 0) {
-                res.status(StatusCode.Sucess).send("No Hotel Found")
-                res.end()
-            } else {
-                res.status(StatusCode.Sucess).send(hoteBySerch);
-                res.end();
-            }
-        } catch (err: any) {
-            res.status(StatusCode.Server_Error).send(err.message);
-            res.end();
-        }
-    }
+    
 
     //get hotel image based on ui send limit of needed image
 
@@ -367,19 +329,14 @@ class HotelDomain {
 
     // adding hotel 
     async addHotel(req: Request, res: Response) {
-
+        console.log("asa");
         var newHotelData = req.body;
-        var nextID: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+        //var nextID: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
         var last = await hotelmodel.find({}).sort({ _id: -1 }).limit(1);
         console.log(last[0]._id);
         var newId = last[0]._id;
         newHotelData._id = newId + 1;
-        // var latitude = newHotelData.address.location.latitude;
-        // var longitude = newHotelData.address.location.longitude;
-        // latitude = parseFloat(latitude);
-        // longitude = parseFloat(longitude);
-        // console.log(typeof(newHotelData.address.location.latitude))
-
+        console.log(last);
         var room: any = [];
 
         var noOfDelux = req.body.noofdeluxe;
@@ -433,9 +390,8 @@ class HotelDomain {
 
 
         newHotelData.room = room;
-
+        
         var data = new hotelmodel(newHotelData);
-        //console.log(data);
         var hoteId = {
             "hotel_id": newHotelData._id,
             "message ": "Your hotel data sucefully saved"
@@ -552,9 +508,10 @@ class HotelDomain {
 
 
 
+
+
     //delete hotel 
     async deleteHotel(req: Request, res: Response) {
-
         var hotelData = await hotelmodel.findOne({ _id: req.params.hoteId })
         if (hotelData) {
             hotelmodel.deleteOne({ _id: req.params.hoteId }, function (err) {
@@ -583,6 +540,136 @@ class HotelDomain {
             res.end();
         }
     }
+    
+
+
+
+    //Get All hotel list
+    async getAllHotel(req: Request, res: Response) {
+        var pageSize: any = req.query.pagesize;
+        var page: any = req.query.page;
+        var hotelSearchParams:any = req.query.searchdata;
+        var city: any = await citymodel.findOne({ city_name: { $regex: hotelSearchParams + '.*', $options: 'i' } })
+        var cityId: Number = city?._id;
+        try {
+            var hoteBySerch: any = await hotelmodel.aggregate([
+                
+                    {
+                        $match: {
+                            $or: [{ "address.city_id": cityId },
+                            { "address.address_line": { $regex: hotelSearchParams + '.*', $options: 'i' } },
+                            { "address.pincode": { $regex: hotelSearchParams + '.*', $options: 'i' } },
+                            { hotel_name: { $regex: hotelSearchParams + '.*', $options: 'i' } }]
+                        }
+                    },
+                
+                { $sort : { _id : 1 } },
+                {
+                    $lookup: {
+                        from: "images",
+                        localField: "_id",
+                        foreignField: "hotel_id",
+                        pipeline: [
+                            { $match: { room_id: null } }
+                        ],
+                        as: "Images",
+                    },
+                },
+                {
+                    "$project": {
+                        "hotel_id": "$_id",
+                        "hotel_name": "$hotel_name",
+                        "rating": "$rating",
+                        "address": "$address",
+                        "price": "$price",
+                        'Images': "$Images"
+                    }
+                },
+
+            ]).skip((parseInt(pageSize) * parseInt(page))).limit(parseInt(pageSize));
+            if (hoteBySerch.length == 0) {
+                res.status(StatusCode.Sucess).send("No Hotel Found")
+                res.end()
+            } else {
+                res.status(StatusCode.Sucess).send(hoteBySerch);
+                res.end();
+            }
+        } catch (err: any) {
+            res.status(StatusCode.Server_Error).send(err.message);
+            res.end();
+        }
+    }
+    
+    //update hotel
+    async updateHotel(req:Request , res : Response){
+        var newHotelData = req.body;        
+        var room: any = []
+        var noOfDelux = req.body.noofdeluxe;
+        var noOfSuperDeluxe = req.body.noodsuperdeluxe;
+        var noOfSemiDeluxe = req.body.noofsemideluxe;
+        var i: any;
+        for (i = 0; i < noOfDelux; i++) {
+            var deluxRoomDetails = {
+                "room_id": ((newHotelData._id) * 100) + (i + 1),
+                "room_type": "Deluxe",
+                "room_size": req.body.deluxesize,
+                "bed_size": req.body.deluxebadsize,
+                "max_capacity": req.body.deluxemaxcapacity,
+                "price": req.body.deluxeprice,
+                "features": req.body.deluxefeatures,
+                "description": req.body.deluxedescription
+            }
+            room.push(deluxRoomDetails);
+        }
+
+        for (i = 0; i < noOfSemiDeluxe; i++) {
+            var semideluxRoomDetails = {
+                "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfDelux),
+                "room_type": "Semi-Deluxe",
+                "room_size": req.body.semideluxesize,
+                "bed_size": req.body.semideluxebadsize,
+                "max_capacity": req.body.semideluxemaxcapacity,
+                "price": req.body.semideluxeprice,
+                "features": req.body.semideluxefeatures,
+                "description": req.body.semideluxedescription
+            }
+            room.push(semideluxRoomDetails);
+        }
+
+        for (i = 0; i < noOfSuperDeluxe; i++) {
+            var superdeluxRoomDetails = {
+                "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfSemiDeluxe + noOfDelux),
+                "room_type": "Super-Deluxe",
+                "room_size": req.body.superdeluxesize,
+                "bed_size": req.body.superdeluxebadsize,
+                "max_capacity": req.body.superdeluxemaxcapacity,
+                "price": req.body.superdeluxeprice,
+                "features": req.body.superdeluxefeatures,
+                "description": req.body.superdeluxedescription
+            }
+            room.push(superdeluxRoomDetails);
+        }
+
+
+        newHotelData.room = room;
+        console.log(newHotelData);
+       
+        try {
+            var data = req.body;
+            console.log(data);
+            await hotelmodel.updateOne({ _id: data._id },data)
+            res.send('update saved success');
+        }
+        catch (err: any) {
+            res.send(err.message);
+        }
+    }
+
+
+    
+
+
+
 
 
 

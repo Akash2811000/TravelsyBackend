@@ -65,19 +65,31 @@ class HotelController {
     }
 
 
+    static async updatehoteldata (req:Request , res : Response){
+        const hoteldomain = new HotelDomain();
+        await hoteldomain.updateHotel(req,res);
+    }
+
+
+
 }
 
-router.get('/', HotelController.getHotel);
+
 
 //get hotel image route
 router.get('/image/:imagelimit', HotelController.getHotelImage);
 router.get('/:hotelsearch', HotelController.getHotelBySearch);
 router.get('/gethotel/getsinglehotel/:hotel_id', HotelController.getHotelPerticular);
 router.get('/gethotellist/gethotelfilterlist',HotelController.getHotelFilterList);
+
+
+//admin 
+router.get('/', HotelController.getHotel);
 router.post('/addhotel',HotelController.addHotel);
 router.post('/addhotelimage',HotelController.addHotelImage);
 router.post('/adddeluxeroomimage', HotelController.adddeluxeroomimage);
 router.post('/addsuperdeluxeroomimage', HotelController.addsuperdeluxeroomimage);
 router.post('/addsemideluxeroomimage', HotelController.addsemideluxeroomimage);
 router.delete('/deleteHotel/:hoteId', HotelController.deleteHotel);
+router.put('/updatehotel', HotelController.updatehoteldata);
 export { router };

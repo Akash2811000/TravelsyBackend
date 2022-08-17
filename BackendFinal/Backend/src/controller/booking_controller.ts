@@ -27,6 +27,13 @@ class BookingController {
         const bookIngDomain = new BookingDomain();
         await bookIngDomain.getAllBookingAdmin(req, res);
     }
+
+    static async getHotelBooking(req:Request , res : Response){
+        const bookIngDomain = new BookingDomain();
+        await bookIngDomain.getHotelBookingAdmin(req, res);
+    }
+
+
 }
 
 router.post('/hotelbooking', BookingController.addBooking);
@@ -34,5 +41,6 @@ router.get('/check', BookingController.roomBookAvailableCheck);
 router.get('/user/bookings', BookingController.userBookingHistory);
 router.get('/roombooking/prize', BookingController.getRoomBookingPrize);
 router.get('/getallbooking', BookingController.getAllBookingAdmin);
+router.get('/gethotelbooking', BookingController.getHotelBooking);
 export { router };
 
