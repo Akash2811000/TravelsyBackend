@@ -111,7 +111,7 @@ class UserDomain {
             var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
             var uid: string = reqData.uid;
             var userData = await Usermodel.findOne({ _id: uid }).select("-__v");
-            if(userData?.user_type){
+            if(userData?.user_type=="admin"){
                 res.status(StatusCode.Sucess).send("You are admin");
                 res.end();
             }else {

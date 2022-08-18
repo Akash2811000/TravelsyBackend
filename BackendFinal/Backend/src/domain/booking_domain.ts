@@ -808,6 +808,68 @@ class BookingDomain {
     }
 
 
+    async bookingFreeze(req: Request, res: Response, cIn: string, cOut: string, roomId: any, hotelId: any) {
+        var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+        try {
+            console.log('booking')
+            if (roomId.length != 0) {
+                var cin=new Date(cIn);
+                var cout=new Date(cOut);
+                var nextID: any = await bookingmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+                console.log(nextID);
+                console.log('fibdef')
+                var diff = Math.abs(cout.getTime() - cin.getTime());
+                var diffDays = Math.ceil(diff / (1000 * 3600 * 24));
+                var bookIngData: object = {
+                    _id: nextID?._id == undefined ? 1 : Number(nextID?.id) + 1,
+                    user_id: reqData.uid,
+                    hotel_id: hotelId,
+                    no_of_room: roomId.length,
+                    room_id: roomId,
+                    checkin_date: new Date(cin),
+                    checkout_date: new Date(cout),
+                    price: {
+                        number_of_nights: diffDays,
+                        room_price: 0,
+                        gst: 0,
+                        discount: 0,
+                        total_price: 0
+                    },
+                    coupon_id:0,
+                    status: "pending",
+                    paymentId: null,
+                    orderId: null
+
+                }
+                console.log(bookIngData)
+                var bookedData = new bookingmodel(bookIngData);
+                await bookedData.save(); 
+                console.log('save');
+                return nextID?._id == undefined ? 1 : Number(nextID?.id) + 1;
+            }else{
+                console.log('')
+                return 0;
+            }
+        } catch (err: any) {
+            console.log('log fail')
+            res.status(StatusCode.Server_Error).send(err.message);
+            res.end();
+        }
+    }
+
+    async bookingFreezFail(bookingId:any){
+
+        try{
+            console.log('timer');
+            await bookingmodel.deleteOne({$and:[{_id:bookingId},{status:"pending"}]});
+            console.log('deleted')
+        }catch(e:any){
+            
+        }
+
+    }
+
+
 
 }
 

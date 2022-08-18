@@ -23,7 +23,19 @@ import { router as reviewroute } from './controller/review_controller';
 import { router as bookingroute } from './controller/booking_controller';
 import { router as bookmarkroute } from './controller/bookmark_controller';
 import {router as paymentroute}  from './controller/payment_controller';
- 
+import cors from "cors";
+import { bookingmodel } from './model/booking';
+var corsOptions = {
+
+    origin: '*',
+
+    optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+
+}
+
+
+
+app.use(cors(corsOptions));
 
 
 // FIREBASE INTITIALIZE
@@ -32,6 +44,32 @@ admin.initializeApp(
         credential: admin.credential.cert(JSON.parse(JSON.stringify(credential)))
     }
 );
+
+app.post('/payment/verifypayment', async (req,res)=> {
+    const SECRET = '123456';
+    console.log(req.body);
+    console.log(req.body.payload);
+    // res.send(req.body);
+    console.log(req.body.payload.payment.entity.status);
+    if(req.body.payload.payment.entity.status == "captured"){
+        console.log(req.body.payload.payment.entity.status);
+        console.log(req.body.payload.payment.entity.order_id);
+        await bookingmodel.updateOne(
+            {
+                "orderId": req.body.payload.payment.entity.order_id,
+                
+            },
+            {
+                $set:{
+                    status:"success",
+                    paymentId:req.body.payload.payment.entity.id
+                }
+            }
+        );
+    }
+    
+ })
+
 
 // TOKEN VERIFICATION CALL
 //app.use(verifyToken, checkRequest);

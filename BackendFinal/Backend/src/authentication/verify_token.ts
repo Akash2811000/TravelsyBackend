@@ -3,6 +3,8 @@ import { StatusCode } from '../statuscode'
 
 //verifyToken method
 function verifyToken(req: any, res: any, next: any) {
+    creatToken();
+    console.log("sa");
     try {
         let resData: any;
         let token: any = req.headers['token'];
@@ -37,23 +39,22 @@ function verifyToken(req: any, res: any, next: any) {
 }
 
 // //creating custom token
-// function creatToken (req: any , res :any ){
-//     const userId = 'some-uid';
-// const additionalClaims = {
-//   premiumAccount: true,
-// };
+function creatToken() {
+    const userId = 'dwkkf5q7ufOeZCSqo5qMBR1sA1F2';
+    const additionalClaims = {
+        premiumAccount: true,
+    };
 
-// admin.auth()
-//   .createCustomToken(userId, additionalClaims)
-//   .then((customToken) => {
-//     return res.status(StatusCode.Sucess).json({ 
-//         message: customToken
-//     });
-//   })
-//   .catch((error) => {
-//     console.log('Error creating custom token:', error);
-//   });
-// }
+    admin.auth()
+        .createCustomToken(userId, additionalClaims)
+        .then((customToken) => {
+            console.log(customToken);
+            return customToken;
+        })
+        .catch((error) => {
+            console.log('Error creating custom token:', error);
+        });
+}
 
 
 //check request method

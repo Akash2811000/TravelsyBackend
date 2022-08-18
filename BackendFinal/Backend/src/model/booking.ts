@@ -10,6 +10,7 @@ const BookingSchema = new mongoose.Schema({
     checkin_date : {type : Date},
     checkout_date : {type : Date},
     status:{type:String},
+    coupon_id:{type:Number,ref:'coupons'},
     paymentId : {type :String},
     orderId : {type : String},
     price: {
