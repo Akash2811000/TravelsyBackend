@@ -546,22 +546,22 @@ class HotelDomain {
 
     //Get All hotel list
     async getAllHotel(req: Request, res: Response) {
-        var pageSize: any = req.query.pagesize;
-        var page: any = req.query.page;
-        var hotelSearchParams:any = req.query.searchdata;
-        var city: any = await citymodel.findOne({ city_name: { $regex: hotelSearchParams + '.*', $options: 'i' } })
-        var cityId: Number = city?._id;
+        // var pageSize: any = req.query.pagesize;
+        // var page: any = req.query.page;
+        // var hotelSearchParams:any = req.query.searchdata;
+        // var city: any = await citymodel.findOne({ city_name: { $regex: hotelSearchParams + '.*', $options: 'i' } })
+        // var cityId: Number = city?._id;
         try {
             var hoteBySerch: any = await hotelmodel.aggregate([
                 
-                    {
-                        $match: {
-                            $or: [{ "address.city_id": cityId },
-                            { "address.address_line": { $regex: hotelSearchParams + '.*', $options: 'i' } },
-                            { "address.pincode": { $regex: hotelSearchParams + '.*', $options: 'i' } },
-                            { hotel_name: { $regex: hotelSearchParams + '.*', $options: 'i' } }]
-                        }
-                    },
+                    // {
+                    //     $match: {
+                    //         $or: [{ "address.city_id": cityId },
+                    //         { "address.address_line": { $regex: hotelSearchParams + '.*', $options: 'i' } },
+                    //         { "address.pincode": { $regex: hotelSearchParams + '.*', $options: 'i' } },
+                    //         { hotel_name: { $regex: hotelSearchParams + '.*', $options: 'i' } }]
+                    //     }
+                    // },
                 
                 { $sort : { _id : 1 } },
                 {
@@ -586,7 +586,8 @@ class HotelDomain {
                     }
                 },
 
-            ]).skip((parseInt(pageSize) * parseInt(page))).limit(parseInt(pageSize));
+            ])
+            //.skip((parseInt(pageSize) * parseInt(page))).limit(parseInt(pageSize));
             if (hoteBySerch.length == 0) {
                 res.status(StatusCode.Sucess).send("No Hotel Found")
                 res.end()
