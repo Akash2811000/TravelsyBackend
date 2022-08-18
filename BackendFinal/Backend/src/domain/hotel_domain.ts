@@ -405,6 +405,90 @@ class HotelDomain {
         }
     }
 
+
+    async getHotelDataForUpdate(req : Request , res: Response){
+        console.log(req.params.hotelid);
+        var hoteldata = await hotelmodel.findOne({_id:req.params.hotelid});
+        console.log(hoteldata!.room.length);
+        var deluxId:any = [];
+        var superdeluxId:any = [];
+        var semideluxId:any = [];
+        var semiDeluxData: any;
+                    var superDeluxData: any;
+                    var deluxData: any;
+        hoteldata!.room.forEach((e:any)=>{
+            if(e.room_type == 'Semi-Deluxe'){
+                semideluxId.push(e.room_id);
+            }
+            if(e.room_type == 'Deluxe'){
+                deluxId.push(e.room_id);
+            }
+            if(e.room_type == 'Super-Deluxe'){
+                superdeluxId.push(e.room_id);
+            }
+            if (e.room_type == "Deluxe" && deluxData == null) {
+                deluxData = (JSON.parse(JSON.stringify(e)));
+            }
+            if (e.room_type == "Semi-Deluxe" && semiDeluxData == null) {
+                semiDeluxData = (JSON.parse(JSON.stringify(e)));
+            }
+            if (e.room_type == "Super-Deluxe" && superDeluxData == null) {
+                superDeluxData = (JSON.parse(JSON.stringify(e)));
+            }
+        });
+        console.log("delux",deluxId)
+        console.log("superdelux",superdeluxId)
+        console.log("semidelux",semideluxId)
+        
+        console.log("delux",deluxData)
+        console.log("superdelux",superDeluxData)
+        console.log("semidelux",semiDeluxData)
+
+        var hotelResponseData = {
+                "_id": hoteldata!._id,
+                "hotel_name": hoteldata!.hotel_name,
+                "address": {
+                    "address_line": hoteldata!.address!.address_line,
+                    "city_id": hoteldata!.address!.city_id,
+                    "pincode": hoteldata!.address!.pincode,
+                    "location": {
+                        "latitude": hoteldata!.address!.location!.latitude,
+                        "longitude": hoteldata!.address!.location!.latitude
+                    }
+                },
+                "rating": hoteldata!.rating,
+                "price": hoteldata!.price,
+                "phone_number": hoteldata!.phone_number,
+                "no_of_room": hoteldata!.no_of_room,
+                "description": hoteldata!.description,
+                "features": hoteldata!.features,
+                "noofdeluxe": deluxId.length,
+                "deluxesize": deluxData.room_size,
+                "deluxebadsize": deluxData.bed_size,
+                "deluxemaxcapacity": deluxData.max_capacity,
+                "deluxeprice": deluxData.price,
+                "deluxefeatures": deluxData.features,
+                "deluxedescription": deluxData.description,
+                "noofsemideluxe": semideluxId.length,
+                "semideluxesize": semiDeluxData.room_size,
+                "semideluxebadsize": semiDeluxData.bed_size,
+                "semideluxemaxcapacity": semiDeluxData.max_capacity,
+                "semideluxeprice": semiDeluxData.price,
+                "semideluxefeatures": semiDeluxData.features,
+                "semideluxedescription": semiDeluxData.description,
+                "noodsuperdeluxe": superdeluxId.length,
+                "superdeluxesize": superDeluxData.room_size,
+                "superdeluxebadsize": superDeluxData.bed_size,
+                "superdeluxemaxcapacity": superDeluxData.max_capacity,
+                "superdeluxeprice": superDeluxData.price,
+                "superdeluxefeatures": superDeluxData.features,
+                "superdeluxedescription": superDeluxData.description,
+            
+        }
+
+        res.send(hotelResponseData);
+    }
+
     //adding image
     async addhotelImage(req: Request, res: Response) {
         var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));

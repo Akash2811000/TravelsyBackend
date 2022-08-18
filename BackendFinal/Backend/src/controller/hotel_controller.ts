@@ -71,6 +71,11 @@ class HotelController {
     }
 
 
+    static async getHotelDataupdate (req:Request , res : Response){
+        const hoteldomain = new HotelDomain();
+        await hoteldomain.getHotelDataForUpdate(req,res);
+    }
+
 
 }
 
@@ -92,4 +97,5 @@ router.post('/addsuperdeluxeroomimage', HotelController.addsuperdeluxeroomimage)
 router.post('/addsemideluxeroomimage', HotelController.addsemideluxeroomimage);
 router.delete('/deleteHotel/:hoteId', HotelController.deleteHotel);
 router.put('/updatehotel', HotelController.updatehoteldata);
+router.get('/updatehoteldata/:hotelid', HotelController.getHotelDataupdate)
 export { router };
