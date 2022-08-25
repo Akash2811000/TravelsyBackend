@@ -637,7 +637,7 @@ class BookingDomain {
         })
         var userIdsearch = ((req.query.username) == "" ? allUserIdarr : userIdarr);
         console.log("userIdsearch", userIdsearch);
-
+        console.log("date2",date2);
         if (date2) {
             var allBookingData = await bookingmodel.aggregate([
                 {
@@ -697,7 +697,10 @@ class BookingDomain {
             else {
                 res.send([]);
             }
-        } else {
+        } 
+        
+        
+        else {
             var allBookingData = await bookingmodel.aggregate([
                 {
                     $match: {

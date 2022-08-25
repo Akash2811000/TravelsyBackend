@@ -52,6 +52,7 @@ app.post('/payment/verifypayment', async (req,res)=> {
     // res.send(req.body);
     console.log(req.body.payload.payment.entity.status);
     if(req.body.payload.payment.entity.status == "captured"){
+        
         console.log(req.body.payload.payment.entity.status);
         console.log(req.body.payload.payment.entity.order_id);
         await bookingmodel.updateOne(
