@@ -3,6 +3,7 @@ import express, { Express, Request, Response } from 'express';
 import Joi, { any } from 'joi';
 import { StatusCode } from '../statuscode';
 import * as admin from 'firebase-admin';
+import { verifyToken, checkRequest  } from "../authentication/verify_token";
 
 
 class UserDomain {
@@ -103,7 +104,27 @@ class UserDomain {
         }
     }
 
+    async creatToken(req:Request , res : Response) {
+        const userId = 'dwkkf5q7ufOeZCSqo5qMBR1sA1F2';
+        const additionalClaims = {
+            premiumAccount: true,
+        };
+      
+        await admin.auth()
+            .createCustomToken(userId, additionalClaims)
+            .then((customToken) => {
+                console.log(customToken);
+                var resdata = {
+                    "token" : customToken,
 
+                }
+                res.send(resdata);
+                return customToken;
+            })
+            .catch((error) => {
+                console.log('Error creating custom token:', error);
+            });
+    }
     //admin check
     async admincheck(req:Request , res: Response){
         try {
@@ -112,7 +133,25 @@ class UserDomain {
             var uid: string = reqData.uid;
             var userData = await Usermodel.findOne({ _id: uid }).select("-__v");
             if(userData?.user_type=="admin"){
-                res.status(StatusCode.Sucess).send("You are admin");
+                //this.creatToken(req,res);
+               // res.status(StatusCode.Sucess).send("You are admin");
+               const additionalClaims = {
+                premiumAccount: true,
+            };
+               await admin.auth()
+               .createCustomToken(uid, additionalClaims)
+               .then((customToken) => {
+                   console.log(customToken);
+                   var resdata = {
+                       "token" : customToken,
+   
+                   }
+                   res.send(resdata);
+                   return customToken;
+               })
+               .catch((error) => {
+                   console.log('Error creating custom token:', error);
+               });
                 res.end();
             }else {
                 res.status(StatusCode.Unauthorized).send("You are not authorize");

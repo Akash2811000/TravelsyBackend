@@ -213,10 +213,29 @@ class BookingDomain {
         try {
             // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
             // var uid: String = reqData.uid;
-            var uid = "7mSnCFJ7zkb5LbwbqBwm4PmuScq1";
+            var date1: any = req.query.date1;
+            var date2: any = req.query.date2;
+            var newdate1 = new Date(date1);
+            var newdate2 = new Date(date2);
+            console.log(newdate1);
+            console.log(newdate2);
+            var uid = "qeTBCkvbSjRgzYTYEOdPkhynaY33";
             var bookingData = await bookingmodel.find({ "user_id": uid });
             var hotelIdList: any = [];
             var bookingHistoryData: any = [];
+
+            var bookindata = await bookingmodel.aggregate([
+                {
+                    $match: {
+                        $and: [{ user_id: uid }, 
+                            { checkin_date: { $gte: newdate1 } }, 
+                            { checkin_date: { $lte: newdate2 } }
+                           
+                        ]
+
+                    }
+                },
+            ])
             if (bookingData != null) {
                 bookingData.forEach(e => {
                     hotelIdList.push(e.hotel_id);
@@ -224,7 +243,11 @@ class BookingDomain {
                 var hotelData = await hotelmodel.aggregate([
                     {
                         $match: {
-                            _id: { $in: hotelIdList }
+                            $and: [{ _id: { $in: hotelIdList } }, 
+                                // { "checkin_date": { $gte: newdate1 } }, 
+                                // { "checkin_date": { $lte: newdate2 } }
+                            ]
+
                         }
                     },
                     {
@@ -265,7 +288,7 @@ class BookingDomain {
                     })
                 })
 
-                res.status(StatusCode.Sucess).send(bookingHistoryData);
+                res.status(StatusCode.Sucess).send(bookindata);
 
             } else {
                 res.status(StatusCode.Sucess).send([]);
@@ -637,7 +660,7 @@ class BookingDomain {
         })
         var userIdsearch = ((req.query.username) == "" ? allUserIdarr : userIdarr);
         console.log("userIdsearch", userIdsearch);
-        console.log("date2",date2);
+        console.log("date2", date2);
         if (date2) {
             var allBookingData = await bookingmodel.aggregate([
                 {
@@ -697,9 +720,9 @@ class BookingDomain {
             else {
                 res.send([]);
             }
-        } 
-        
-        
+        }
+
+
         else {
             var allBookingData = await bookingmodel.aggregate([
                 {
@@ -723,7 +746,7 @@ class BookingDomain {
                                     user_name: 1,
                                     user_email: 1,
                                     user_image: 1
-                                
+
                                 }
                             }
                         ],
@@ -816,8 +839,8 @@ class BookingDomain {
         try {
             console.log('booking')
             if (roomId.length != 0) {
-                var cin=new Date(cIn);
-                var cout=new Date(cOut);
+                var cin = new Date(cIn);
+                var cout = new Date(cOut);
                 var nextID: any = await bookingmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
                 console.log(nextID);
                 console.log('fibdef')
@@ -838,7 +861,7 @@ class BookingDomain {
                         discount: 0,
                         total_price: 0
                     },
-                    coupon_id:0,
+                    coupon_id: 0,
                     status: "pending",
                     paymentId: null,
                     orderId: null
@@ -846,10 +869,10 @@ class BookingDomain {
                 }
                 console.log(bookIngData)
                 var bookedData = new bookingmodel(bookIngData);
-                await bookedData.save(); 
+                await bookedData.save();
                 console.log('save');
                 return nextID?._id == undefined ? 1 : Number(nextID?.id) + 1;
-            }else{
+            } else {
                 console.log('')
                 return 0;
             }
@@ -860,14 +883,14 @@ class BookingDomain {
         }
     }
 
-    async bookingFreezFail(bookingId:any){
+    async bookingFreezFail(bookingId: any) {
 
-        try{
+        try {
             console.log('timer');
-            await bookingmodel.deleteOne({$and:[{_id:bookingId},{status:"pending"}]});
+            await bookingmodel.deleteOne({ $and: [{ _id: bookingId }, { status: "pending" }] });
             console.log('deleted')
-        }catch(e:any){
-            
+        } catch (e: any) {
+
         }
 
     }

@@ -44,7 +44,7 @@ function creatToken() {
     const additionalClaims = {
         premiumAccount: true,
     };
-
+  
     admin.auth()
         .createCustomToken(userId, additionalClaims)
         .then((customToken) => {

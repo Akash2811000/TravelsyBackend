@@ -331,7 +331,7 @@ class HotelDomain {
     async addHotel(req: Request, res: Response) {
         console.log("asa");
         var newHotelData = req.body;
-        //var nextID: any = await hotelmodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+        var nextID: any = await imagemodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
         var last = await hotelmodel.find({}).sort({ _id: -1 }).limit(1);
         console.log(last[0]._id);
         var newId = last[0]._id;
@@ -343,9 +343,10 @@ class HotelDomain {
         var noOfSuperDeluxe = req.body.noodsuperdeluxe;
         var noOfSemiDeluxe = req.body.noofsemideluxe;
 
-        console.log(noOfDelux);
+        
 
         var i: any;
+        var j: any;
         for (i = 0; i < noOfDelux; i++) {
             var deluxRoomDetails = {
                 "room_id": ((newHotelData._id) * 100) + (i + 1),
@@ -390,14 +391,98 @@ class HotelDomain {
 
 
         newHotelData.room = room;
+        var deluxroomID :any = [];
+        var semideluxroomID :any = [];
+        var superdeluxroomID :any = [];
         
+        
+        for(i = 0 ; i < room.length ; i++){
+            if(room[i].room_type == 'Super-Deluxe'){
+                superdeluxroomID.push(room[i].room_id)
+            }
+            if(room[i].room_type == 'Semi-Deluxe'){
+                semideluxroomID.push(room[i].room_id)
+            }
+            if(room[i].room_type == 'Deluxe'){
+                deluxroomID.push(room[i].room_id)
+            }
+        }
+        console.log("deluxroomID",deluxroomID)
+        console.log("semideluxroomID",semideluxroomID)
+        console.log("superdeluxroomID",superdeluxroomID)
+
+      
+       
+        var hotelimagedata:any = [];
+
+        for (i = 0; i < req.body.hotelimages.length; i++) {
+            var images = {
+                "image_url": req.body.hotelimages[i],
+                "hotel_id": newHotelData._id,
+                "room_id": null,
+                "tour_id": null,
+                "user_id": null
+            }
+            hotelimagedata.push(images)
+            
+        }
+        for (j = 0; j < deluxroomID.length; j++) {
+            for (i = 0; i < req.body.deluxeimages.length; i++) {
+                var deluximages = {
+                    "image_url": req.body.deluxeimages[i],
+                    "hotel_id": newHotelData._id,
+                    "room_id": deluxroomID[j],
+                    "tour_id": null,
+                    "user_id": null
+                }
+                hotelimagedata.push(deluximages)
+
+            }
+        }
+        for (j = 0; j < semideluxroomID.length; j++) {
+            for (i = 0; i < req.body.semideluxeimages.length; i++) {
+                var semideluximages = {
+                    "image_url": req.body.semideluxeimages[i],
+                    "hotel_id": newHotelData._id,
+                    "room_id": semideluxroomID[j],
+                    "tour_id": null,
+                    "user_id": null
+                }
+                hotelimagedata.push(semideluximages)
+
+            }
+        }
+        for (j = 0; j < superdeluxroomID.length; j++) {
+            for (i = 0; i < req.body.superdeluxeimages.length; i++) {
+                var superdeluximages = {
+                    "image_url": req.body.superdeluxeimages[i],
+                    "hotel_id": newHotelData._id,
+                    "room_id": superdeluxroomID[j],
+                    "tour_id": null,
+                    "user_id": null
+                }
+                hotelimagedata.push(superdeluximages)
+
+            }
+        }
+
+        for (i = 0; i < hotelimagedata.length; i++) {
+            hotelimagedata[i]._id = nextID._id + i + 1;
+        }
+
         var data = new hotelmodel(newHotelData);
+        
+      
         var hoteId = {
             "hotel_id": newHotelData._id,
             "message ": "Your hotel data sucefully saved"
         }
         try {
             await data.save();
+            imagemodel.insertMany(hotelimagedata, function (err: any, result: any) {
+                if (err) throw err;
+                console.log("saved")
+            });
             res.send(hoteId);
         }
         catch (err: any) {
@@ -486,7 +571,7 @@ class HotelDomain {
             
         }
 
-        res.send(hotelResponseData);
+        res.status(StatusCode.Sucess).send(hotelResponseData);
     }
 
     //adding image
