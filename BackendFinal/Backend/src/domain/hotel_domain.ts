@@ -9,7 +9,7 @@ import { Usermodel } from '../model/users';
 import express, { Express, Request, Response } from 'express'
 
 class HotelDomain {
-    
+
 
     //get hotel image based on ui send limit of needed image
 
@@ -343,7 +343,7 @@ class HotelDomain {
         var noOfSuperDeluxe = req.body.noodsuperdeluxe;
         var noOfSemiDeluxe = req.body.noofsemideluxe;
 
-        
+
 
         var i: any;
         var j: any;
@@ -391,29 +391,29 @@ class HotelDomain {
 
 
         newHotelData.room = room;
-        var deluxroomID :any = [];
-        var semideluxroomID :any = [];
-        var superdeluxroomID :any = [];
-        
-        
-        for(i = 0 ; i < room.length ; i++){
-            if(room[i].room_type == 'Super-Deluxe'){
+        var deluxroomID: any = [];
+        var semideluxroomID: any = [];
+        var superdeluxroomID: any = [];
+
+
+        for (i = 0; i < room.length; i++) {
+            if (room[i].room_type == 'Super-Deluxe') {
                 superdeluxroomID.push(room[i].room_id)
             }
-            if(room[i].room_type == 'Semi-Deluxe'){
+            if (room[i].room_type == 'Semi-Deluxe') {
                 semideluxroomID.push(room[i].room_id)
             }
-            if(room[i].room_type == 'Deluxe'){
+            if (room[i].room_type == 'Deluxe') {
                 deluxroomID.push(room[i].room_id)
             }
         }
-        console.log("deluxroomID",deluxroomID)
-        console.log("semideluxroomID",semideluxroomID)
-        console.log("superdeluxroomID",superdeluxroomID)
+        console.log("deluxroomID", deluxroomID)
+        console.log("semideluxroomID", semideluxroomID)
+        console.log("superdeluxroomID", superdeluxroomID)
 
-      
-       
-        var hotelimagedata:any = [];
+
+
+        var hotelimagedata: any = [];
 
         for (i = 0; i < req.body.hotelimages.length; i++) {
             var images = {
@@ -424,7 +424,7 @@ class HotelDomain {
                 "user_id": null
             }
             hotelimagedata.push(images)
-            
+
         }
         for (j = 0; j < deluxroomID.length; j++) {
             for (i = 0; i < req.body.deluxeimages.length; i++) {
@@ -471,8 +471,8 @@ class HotelDomain {
         }
 
         var data = new hotelmodel(newHotelData);
-        
-      
+
+
         var hoteId = {
             "hotel_id": newHotelData._id,
             "message ": "Your hotel data sucefully saved"
@@ -491,24 +491,24 @@ class HotelDomain {
     }
 
 
-    async getHotelDataForUpdate(req : Request , res: Response){
+    async getHotelDataForUpdate(req: Request, res: Response) {
         console.log(req.params.hotelid);
-        var hoteldata = await hotelmodel.findOne({_id:req.params.hotelid});
+        var hoteldata = await hotelmodel.findOne({ _id: req.params.hotelid });
         console.log(hoteldata!.room.length);
-        var deluxId:any = [];
-        var superdeluxId:any = [];
-        var semideluxId:any = [];
+        var deluxId: any = [];
+        var superdeluxId: any = [];
+        var semideluxId: any = [];
         var semiDeluxData: any;
-                    var superDeluxData: any;
-                    var deluxData: any;
-        hoteldata!.room.forEach((e:any)=>{
-            if(e.room_type == 'Semi-Deluxe'){
+        var superDeluxData: any;
+        var deluxData: any;
+        hoteldata!.room.forEach((e: any) => {
+            if (e.room_type == 'Semi-Deluxe') {
                 semideluxId.push(e.room_id);
             }
-            if(e.room_type == 'Deluxe'){
+            if (e.room_type == 'Deluxe') {
                 deluxId.push(e.room_id);
             }
-            if(e.room_type == 'Super-Deluxe'){
+            if (e.room_type == 'Super-Deluxe') {
                 superdeluxId.push(e.room_id);
             }
             if (e.room_type == "Deluxe" && deluxData == null) {
@@ -521,54 +521,89 @@ class HotelDomain {
                 superDeluxData = (JSON.parse(JSON.stringify(e)));
             }
         });
-        console.log("delux",deluxId)
-        console.log("superdelux",superdeluxId)
-        console.log("semidelux",semideluxId)
-        
-        console.log("delux",deluxData)
-        console.log("superdelux",superDeluxData)
-        console.log("semidelux",semiDeluxData)
+        console.log("delux", deluxId)
+        console.log("superdelux", superdeluxId)
+        console.log("semidelux", semideluxId)
 
+        var hoteimagedata: any = [];
+        var deluxeimagedata: any = [];
+        var semideluxeimagedata: any = [];
+        var superdeluxeimagedata: any = [];
+
+        var hotelimage = await imagemodel.find({ $and: [{ hotel_id: req.params.hotelid }, { room_id: null }] }).select("image_url")
+        var deluxeimage = await imagemodel.find({ $and: [{ hotel_id: req.params.hotelid }, { room_id: { $in: deluxId } }] })
+        var superdeluxeimage = await imagemodel.find({ $and: [{ hotel_id: req.params.hotelid }, { room_id: { $in: superdeluxId } }] })
+        var semideluxeimage = await imagemodel.find({ $and: [{ hotel_id: req.params.hotelid }, { room_id: { $in: semideluxId } }] })
+        console.log(hotelimage)
+        hotelimage.forEach((e: any) => {
+            if (!hoteimagedata.includes(e.image_url)) {
+                hoteimagedata.push(e.image_url)
+            }
+
+        })
+        deluxeimage.forEach((e: any) => {
+            if (!deluxeimagedata.includes(e.image_url)) {
+                deluxeimagedata.push(e.image_url)
+            }
+
+        })
+        superdeluxeimage.forEach((e: any) => {
+            if (!superdeluxeimagedata.includes(e.image_url)) {
+                superdeluxeimagedata.push(e.image_url)
+            }
+
+        })
+        semideluxeimage.forEach((e: any) => {
+            if (!semideluxeimagedata.includes(e.image_url)) {
+                semideluxeimagedata.push(e.image_url)
+            }
+
+        })
+        console.log(hoteimagedata);
         var hotelResponseData = {
-                "_id": hoteldata!._id,
-                "hotel_name": hoteldata!.hotel_name,
-                "address": {
-                    "address_line": hoteldata!.address!.address_line,
-                    "city_id": hoteldata!.address!.city_id,
-                    "pincode": hoteldata!.address!.pincode,
-                    "location": {
-                        "latitude": hoteldata!.address!.location!.latitude,
-                        "longitude": hoteldata!.address!.location!.latitude
-                    }
-                },
-                "rating": hoteldata!.rating,
-                "price": hoteldata!.price,
-                "phone_number": hoteldata!.phone_number,
-                "no_of_room": hoteldata!.no_of_room,
-                "description": hoteldata!.description,
-                "features": hoteldata!.features,
-                "noofdeluxe": deluxId.length,
-                "deluxesize": deluxData.room_size,
-                "deluxebadsize": deluxData.bed_size,
-                "deluxemaxcapacity": deluxData.max_capacity,
-                "deluxeprice": deluxData.price,
-                "deluxefeatures": deluxData.features,
-                "deluxedescription": deluxData.description,
-                "noofsemideluxe": semideluxId.length,
-                "semideluxesize": semiDeluxData.room_size,
-                "semideluxebadsize": semiDeluxData.bed_size,
-                "semideluxemaxcapacity": semiDeluxData.max_capacity,
-                "semideluxeprice": semiDeluxData.price,
-                "semideluxefeatures": semiDeluxData.features,
-                "semideluxedescription": semiDeluxData.description,
-                "noodsuperdeluxe": superdeluxId.length,
-                "superdeluxesize": superDeluxData.room_size,
-                "superdeluxebadsize": superDeluxData.bed_size,
-                "superdeluxemaxcapacity": superDeluxData.max_capacity,
-                "superdeluxeprice": superDeluxData.price,
-                "superdeluxefeatures": superDeluxData.features,
-                "superdeluxedescription": superDeluxData.description,
-            
+            "_id": hoteldata!._id,
+            "hotel_name": hoteldata!.hotel_name,
+            "address": {
+                "address_line": hoteldata!.address!.address_line,
+                "city_id": hoteldata!.address!.city_id,
+                "pincode": hoteldata!.address!.pincode,
+                "location": {
+                    "latitude": hoteldata!.address!.location!.latitude,
+                    "longitude": hoteldata!.address!.location!.latitude
+                }
+            },
+            "rating": hoteldata!.rating,
+            "price": hoteldata!.price,
+            "phone_number": hoteldata!.phone_number,
+            "no_of_room": hoteldata!.no_of_room,
+            "description": hoteldata!.description,
+            "features": hoteldata!.features,
+            "noofdeluxe": deluxId.length,
+            "deluxesize": deluxData.room_size,
+            "deluxebadsize": deluxData.bed_size,
+            "deluxemaxcapacity": deluxData.max_capacity,
+            "deluxeprice": deluxData.price,
+            "deluxefeatures": deluxData.features,
+            "deluxedescription": deluxData.description,
+            "noofsemideluxe": semideluxId.length,
+            "semideluxesize": semiDeluxData.room_size,
+            "semideluxebadsize": semiDeluxData.bed_size,
+            "semideluxemaxcapacity": semiDeluxData.max_capacity,
+            "semideluxeprice": semiDeluxData.price,
+            "semideluxefeatures": semiDeluxData.features,
+            "semideluxedescription": semiDeluxData.description,
+            "noodsuperdeluxe": superdeluxId.length,
+            "superdeluxesize": superDeluxData.room_size,
+            "superdeluxebadsize": superDeluxData.bed_size,
+            "superdeluxemaxcapacity": superDeluxData.max_capacity,
+            "superdeluxeprice": superDeluxData.price,
+            "superdeluxefeatures": superDeluxData.features,
+            "superdeluxedescription": superDeluxData.description,
+            "hotelimages": hoteimagedata,
+            "deluxeimages": deluxeimagedata,
+            "semideluxeimages": semideluxeimagedata,
+            "superdeluxeimages": superdeluxeimagedata
+
         }
 
         res.status(StatusCode.Sucess).send(hotelResponseData);
@@ -709,7 +744,7 @@ class HotelDomain {
             res.end();
         }
     }
-    
+
 
 
 
@@ -722,17 +757,17 @@ class HotelDomain {
         // var cityId: Number = city?._id;
         try {
             var hoteBySerch: any = await hotelmodel.aggregate([
-                
-                    // {
-                    //     $match: {
-                    //         $or: [{ "address.city_id": cityId },
-                    //         { "address.address_line": { $regex: hotelSearchParams + '.*', $options: 'i' } },
-                    //         { "address.pincode": { $regex: hotelSearchParams + '.*', $options: 'i' } },
-                    //         { hotel_name: { $regex: hotelSearchParams + '.*', $options: 'i' } }]
-                    //     }
-                    // },
-                
-                { $sort : { _id : 1 } },
+
+                // {
+                //     $match: {
+                //         $or: [{ "address.city_id": cityId },
+                //         { "address.address_line": { $regex: hotelSearchParams + '.*', $options: 'i' } },
+                //         { "address.pincode": { $regex: hotelSearchParams + '.*', $options: 'i' } },
+                //         { hotel_name: { $regex: hotelSearchParams + '.*', $options: 'i' } }]
+                //     }
+                // },
+
+                { $sort: { _id: 1 } },
                 {
                     $lookup: {
                         from: "images",
@@ -769,10 +804,10 @@ class HotelDomain {
             res.end();
         }
     }
-    
+
     //update hotel
-    async updateHotel(req:Request , res : Response){
-        var newHotelData = req.body;        
+    async updateHotel(req: Request, res: Response) {
+        var newHotelData = req.body;
         var room: any = []
         var noOfDelux = req.body.noofdeluxe;
         var noOfSuperDeluxe = req.body.noodsuperdeluxe;
@@ -823,11 +858,11 @@ class HotelDomain {
 
         newHotelData.room = room;
         console.log(newHotelData);
-       
+
         try {
             var data = req.body;
             console.log(data);
-            await hotelmodel.updateOne({ _id: data._id },data)
+            await hotelmodel.updateOne({ _id: data._id }, data)
             res.send('update saved success');
         }
         catch (err: any) {
@@ -836,7 +871,7 @@ class HotelDomain {
     }
 
 
-    
+
 
 
 
