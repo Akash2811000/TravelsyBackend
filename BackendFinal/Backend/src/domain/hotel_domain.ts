@@ -806,13 +806,79 @@ class HotelDomain {
     }
 
     //update hotel
-    async updateHotel(req: Request, res: Response) {
-        var newHotelData = req.body;
-        var room: any = []
-        var noOfDelux = req.body.noofdeluxe;
-        var noOfSuperDeluxe = req.body.noodsuperdeluxe;
-        var noOfSemiDeluxe = req.body.noofsemideluxe;
-        var i: any;
+    // async updateHotel(req: Request, res: Response) {
+    //     var newHotelData = req.body;
+    //     var room: any = []
+    //     var noOfDelux = req.body.noofdeluxe;
+    //     var noOfSuperDeluxe = req.body.noodsuperdeluxe;
+    //     var noOfSemiDeluxe = req.body.noofsemideluxe;
+    //     var i: any;
+    //     for (i = 0; i < noOfDelux; i++) {
+    //         var deluxRoomDetails = {
+    //             "room_id": ((newHotelData._id) * 100) + (i + 1),
+    //             "room_type": "Deluxe",
+    //             "room_size": req.body.deluxesize,
+    //             "bed_size": req.body.deluxebadsize,
+    //             "max_capacity": req.body.deluxemaxcapacity,
+    //             "price": req.body.deluxeprice,
+    //             "features": req.body.deluxefeatures,
+    //             "description": req.body.deluxedescription
+    //         }
+    //         room.push(deluxRoomDetails);
+    //     }
+
+    //     for (i = 0; i < noOfSemiDeluxe; i++) {
+    //         var semideluxRoomDetails = {
+    //             "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfDelux),
+    //             "room_type": "Semi-Deluxe",
+    //             "room_size": req.body.semideluxesize,
+    //             "bed_size": req.body.semideluxebadsize,
+    //             "max_capacity": req.body.semideluxemaxcapacity,
+    //             "price": req.body.semideluxeprice,
+    //             "features": req.body.semideluxefeatures,
+    //             "description": req.body.semideluxedescription
+    //         }
+    //         room.push(semideluxRoomDetails);
+    //     }
+
+    //     for (i = 0; i < noOfSuperDeluxe; i++) {
+    //         var superdeluxRoomDetails = {
+    //             "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfSemiDeluxe + noOfDelux),
+    //             "room_type": "Super-Deluxe",
+    //             "room_size": req.body.superdeluxesize,
+    //             "bed_size": req.body.superdeluxebadsize,
+    //             "max_capacity": req.body.superdeluxemaxcapacity,
+    //             "price": req.body.superdeluxeprice,
+    //             "features": req.body.superdeluxefeatures,
+    //             "description": req.body.superdeluxedescription
+    //         }
+    //         room.push(superdeluxRoomDetails);
+    //     }
+
+
+    //     newHotelData.room = room;
+    //     console.log(newHotelData);
+
+    //     try {
+    //         var data = req.body;
+    //         console.log(data);
+    //         await hotelmodel.updateOne({ _id: data._id }, data)
+    //         res.send('update saved success');
+    //     }
+    //     catch (err: any) {
+    //         res.send(err.message);
+    //     }
+    // }
+//update hotel
+async updateHotel(req: Request, res: Response) {
+    var newHotelData = req.body;
+    var room: any = []
+    var nextID: any = await imagemodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
+    var noOfDelux = req.body.noofdeluxe;
+    var noOfSuperDeluxe = req.body.noodsuperdeluxe;
+    var noOfSemiDeluxe = req.body.noofsemideluxe;
+    var i: any;
+    if (newHotelData._id >49) {
         for (i = 0; i < noOfDelux; i++) {
             var deluxRoomDetails = {
                 "room_id": ((newHotelData._id) * 100) + (i + 1),
@@ -826,7 +892,6 @@ class HotelDomain {
             }
             room.push(deluxRoomDetails);
         }
-
         for (i = 0; i < noOfSemiDeluxe; i++) {
             var semideluxRoomDetails = {
                 "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfDelux),
@@ -840,7 +905,6 @@ class HotelDomain {
             }
             room.push(semideluxRoomDetails);
         }
-
         for (i = 0; i < noOfSuperDeluxe; i++) {
             var superdeluxRoomDetails = {
                 "room_id": ((newHotelData._id) * 100) + (i + 1 + noOfSemiDeluxe + noOfDelux),
@@ -854,22 +918,155 @@ class HotelDomain {
             }
             room.push(superdeluxRoomDetails);
         }
+        var deluxroomID: any = [];
+        var semideluxroomID: any = [];
+        var superdeluxroomID: any = [];
+        for (i = 0; i < room.length; i++) {
+            if (room[i].room_type == 'Super-Deluxe') {
+                superdeluxroomID.push(room[i].room_id)
+            }
+            if (room[i].room_type == 'Semi-Deluxe') {
+                semideluxroomID.push(room[i].room_id)
+            }
+            if (room[i].room_type == 'Deluxe') {
+                deluxroomID.push(room[i].room_id)
+            }
+        }
+        console.log("deluxroomID", deluxroomID)
+        console.log("semideluxroomID", semideluxroomID)
+        console.log("superdeluxroomID", superdeluxroomID)
+        var i :any ;
+        var j :any ;
+        var hotelimagedata: any = [];
+        for (i = 0; i < req.body.hotelimages.length; i++) {
+            var images = {
+                "image_url": req.body.hotelimages[i],
+                "hotel_id": newHotelData._id,
+                "room_id": null,
+                "tour_id": null,
+                "user_id": null
+            }
+            hotelimagedata.push(images)
+        }
+        for (j = 0; j < deluxroomID.length; j++) {
+            for (i = 0; i < req.body.deluxeimages.length; i++) {
+                var deluximages = {
+                    "image_url": req.body.deluxeimages[i],
+                    "hotel_id": newHotelData._id,
+                    "room_id": deluxroomID[j],
+                    "tour_id": null,
+                    "user_id": null
+                }
+                hotelimagedata.push(deluximages)
+            }
+        }
+        for (j = 0; j < semideluxroomID.length; j++) {
+            for (i = 0; i < req.body.semideluxeimages.length; i++) {
+                var semideluximages = {
+                    "image_url": req.body.semideluxeimages[i],
+                    "hotel_id": newHotelData._id,
+                    "room_id": semideluxroomID[j],
+                    "tour_id": null,
+                    "user_id": null
+                }
+                hotelimagedata.push(semideluximages)
+            }
+        }
+        for (j = 0; j < superdeluxroomID.length; j++) {
+            for (i = 0; i < req.body.superdeluxeimages.length; i++) {
+                var superdeluximages = {
+                    "image_url": req.body.superdeluxeimages[i],
+                    "hotel_id": newHotelData._id,
+                    "room_id": superdeluxroomID[j],
+                    "tour_id": null,
+                    "user_id": null
+                }
+                hotelimagedata.push(superdeluximages)
+            }
+        }
+        for (i = 0; i < hotelimagedata.length; i++) {
+            hotelimagedata[i]._id = nextID._id + i + 1;
+        }
+        var hoteldata = await hotelmodel.findOne({ _id: req.body._id });
+        console.log(hoteldata!.room.length);
+        var deluxId: any = [];
+        var superdeluxId: any = [];
+        var semideluxId: any = [];
+        hoteldata!.room.forEach((e: any) => {
+            if (e.room_type == 'Semi-Deluxe') {
+                semideluxId.push(e.room_id);
+            }
+            if (e.room_type == 'Deluxe') {
+                deluxId.push(e.room_id);
+            }
+            if (e.room_type == 'Super-Deluxe') {
+                superdeluxId.push(e.room_id);
+            }
+        });
+        console.log("delux", deluxId)
+        console.log("superdelux", superdeluxId)
+        console.log("semidelux", semideluxId)
+        var orghoteimagedata: any = [];
+        var orgdeluxeimagedata: any = [];
+        var orgsemideluxeimagedata: any = [];
+        var orgsuperdeluxeimagedata: any = [];
+        var hotelimage = await imagemodel.find({ $and: [{ hotel_id: req.body._id }, { room_id: null }] }).select("image_url")
+        var deluxeimage = await imagemodel.find({ $and: [{ hotel_id: req.body._id }] }).select("image_url")
+        var superdeluxeimage = await imagemodel.find({ $and: [{ hotel_id: req.body._id }, { room_id: { $in: superdeluxId } }] }).select("image_url")
+        var semideluxeimage = await imagemodel.find({ $and: [{ hotel_id: req.body._id }, { room_id: { $in: semideluxId } }] }).select("image_url")
+        hotelimage.forEach((e: any) => {
+            if (!orghoteimagedata.includes(e.image_url)) {
+                orghoteimagedata.push(e.image_url)
+            }
+        })
+        deluxeimage.forEach((e: any) => {
+            if (!orgdeluxeimagedata.includes(e.image_url)) {
+                orgdeluxeimagedata.push(e.image_url)
+            }
+        })
+        superdeluxeimage.forEach((e: any) => {
+            if (!orgsuperdeluxeimagedata.includes(e.image_url)) {
+                orgsuperdeluxeimagedata.push(e.image_url)
+            }
+        })
+        semideluxeimage.forEach((e: any) => {
+            if (!orgsemideluxeimagedata.includes(e.image_url)) {
+                orgsemideluxeimagedata.push(e.image_url)
+            }
+        })
+        console.log("orghoteimagedata",orghoteimagedata);
+        console.log("orgdeluxeimagedata",orgdeluxeimagedata);
+        console.log("orgsemideluxeimagedata",orgsemideluxeimagedata);
+        console.log("orgsuperdeluxeimagedata",orgsuperdeluxeimagedata) ;
+        console.log("updhoteimagedata",req.body.hotelimages);
+        console.log("upddeluxeimagedata",req.body.deluxeimages);
+        console.log("updsemideluxeimagedata",req.body.semideluxeimages);
+        console.log("updsuperdeluxeimagedata",req.body.superdeluxeimages) ;
+        
+        var delhotelimagedata = orghoteimagedata.filter((x:any) => !(req.body.hotelimages).includes(x));
+        var deldeluxeimagedata = orgdeluxeimagedata.filter((x:any) => !(req.body.deluxeimages).includes(x));
+        var delsemideluxeimagedata = orgsemideluxeimagedata.filter((x:any) => !(req.body.semideluxeimages).includes(x));
+        var delsuperdeluxeimagedata = orgsuperdeluxeimagedata.filter((x:any) => !(req.body.superdeluxeimages).includes(x));
 
-
+        console.log("delhotelimagedata",delhotelimagedata)
+        console.log("deldeluxeimagedata",deldeluxeimagedata)
+        console.log("delsemideluxeimagedata",delsemideluxeimagedata)
+        console.log("delsuperdeluxeimagedata",delsuperdeluxeimagedata)
+        
         newHotelData.room = room;
-        console.log(newHotelData);
-
         try {
             var data = req.body;
-            console.log(data);
-            await hotelmodel.updateOne({ _id: data._id }, data)
-            res.send('update saved success');
+          
+           // await hotelmodel.updateOne({ _id: data._id }, data)
+            res.send(hotelimagedata);
         }
         catch (err: any) {
             res.send(err.message);
         }
+    } else {
+        res.send("you can not update , sorry from backend")
     }
-
+}
 
 
 
