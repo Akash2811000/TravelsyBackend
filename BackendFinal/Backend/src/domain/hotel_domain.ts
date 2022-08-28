@@ -1058,7 +1058,7 @@ async updateHotel(req: Request, res: Response) {
             var data = req.body;
           
            // await hotelmodel.updateOne({ _id: data._id }, data)
-            res.send(hotelimagedata);
+            res.send(data);
         }
         catch (err: any) {
             res.send(err.message);
