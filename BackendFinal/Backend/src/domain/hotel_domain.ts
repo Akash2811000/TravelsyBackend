@@ -7,6 +7,7 @@ import { BookingDomain } from "../domain/booking_domain";
 import { bookmarkmodel } from "../model/bookmark";
 import { Usermodel } from '../model/users';
 import express, { Express, Request, Response } from 'express'
+import { getStorage, ref, deleteObject } from "@firebase/storage";
 
 class HotelDomain {
 
@@ -872,13 +873,13 @@ class HotelDomain {
 //update hotel
 async updateHotel(req: Request, res: Response) {
     var newHotelData = req.body;
+    const storage = getStorage();
     var room: any = []
-    var nextID: any = await imagemodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
     var noOfDelux = req.body.noofdeluxe;
     var noOfSuperDeluxe = req.body.noodsuperdeluxe;
     var noOfSemiDeluxe = req.body.noofsemideluxe;
     var i: any;
-    if (newHotelData._id >49) {
+    if (newHotelData._id >50) {
         for (i = 0; i < noOfDelux; i++) {
             var deluxRoomDetails = {
                 "room_id": ((newHotelData._id) * 100) + (i + 1),
@@ -984,6 +985,17 @@ async updateHotel(req: Request, res: Response) {
                 hotelimagedata.push(superdeluximages)
             }
         }
+        await imagemodel.deleteMany({ hotel_id:req.body._id}, function (err) {
+            if (!err) {
+                console.log("Image deleted")
+            }
+            else {
+                console.log("Error in deleeting");
+             
+            }
+        });
+
+        var nextID: any = await imagemodel.findOne({}, { _id: 1 }).sort({ _id: -1 });
         for (i = 0; i < hotelimagedata.length; i++) {
             hotelimagedata[i]._id = nextID._id + i + 1;
         }
@@ -1052,11 +1064,47 @@ async updateHotel(req: Request, res: Response) {
         console.log("deldeluxeimagedata",deldeluxeimagedata)
         console.log("delsemideluxeimagedata",delsemideluxeimagedata)
         console.log("delsuperdeluxeimagedata",delsuperdeluxeimagedata)
+
+        delhotelimagedata.forEach((e:any)=>{
+            const desertRef = ref(storage, e);
+            deleteObject(desertRef).then(() => {
+              console.log("deleted")
+            }).catch((error) => {
+              console.log(error);
+            });
+        })
+        deldeluxeimagedata.forEach((e:any)=>{
+            const desertRef = ref(storage, e);
+            deleteObject(desertRef).then(() => {
+              console.log("deleted")
+            }).catch((error) => {
+              console.log(error);
+            });
+        })
+        delsemideluxeimagedata.forEach((e:any)=>{
+            const desertRef = ref(storage, e);
+            deleteObject(desertRef).then(() => {
+              console.log("deleted")
+            }).catch((error) => {
+              console.log(error);
+            });
+        })
+        delsuperdeluxeimagedata.forEach((e:any)=>{
+            const desertRef = ref(storage, e);
+            deleteObject(desertRef).then(() => {
+              console.log("deleted")
+            }).catch((error) => {
+              console.log(error);
+            });
+        })
         
         newHotelData.room = room;
         try {
             var data = req.body;
-          
+            imagemodel.insertMany(hotelimagedata, function (err: any, result: any) {
+                if (err) throw err;
+                console.log("Image sucessfully added");
+            });
            // await hotelmodel.updateOne({ _id: data._id }, data)
             res.send(data);
         }

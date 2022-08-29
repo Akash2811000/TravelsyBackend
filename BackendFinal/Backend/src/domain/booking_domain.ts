@@ -4,6 +4,8 @@ import { hotelmodel } from "../model/hotel";
 import { imagemodel } from "../model/image";
 import { Usermodel } from '../model/users';
 import express, { Express, Request, Response } from 'express'
+import { reviewmodel } from "../model/review";
+
 
 
 class BookingDomain {
@@ -209,45 +211,124 @@ class BookingDomain {
     }
 
 
+    // async userBookingHistory(req: Request, res: Response) {
+    //     try {
+    //         // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
+    //         // var uid: String = reqData.uid;
+    //         var date1: any = req.query.date1;
+    //         var date2: any = req.query.date2;
+    //         var newdate1 = new Date(date1);
+    //         var newdate2 = new Date(date2);
+    //         console.log(newdate1);
+    //         console.log(newdate2);
+    //         var uid = "qeTBCkvbSjRgzYTYEOdPkhynaY33";
+    //         var bookingData = await bookingmodel.find({ "user_id": uid });
+    //         var hotelIdList: any = [];
+    //         var bookingHistoryData: any = [];
+
+    //         var bookindata = await bookingmodel.aggregate([
+    //             {
+    //                 $match: {
+    //                     $and: [{ user_id: uid }, 
+    //                         { checkin_date: { $gte: newdate1 } }, 
+    //                         { checkin_date: { $lte: newdate2 } }
+
+    //                     ]
+
+    //                 }
+    //             },
+    //         ])
+    //         if (bookingData != null) {
+    //             bookingData.forEach(e => {
+    //                 hotelIdList.push(e.hotel_id);
+    //             })
+    //             var hotelData = await hotelmodel.aggregate([
+    //                 {
+    //                     $match: {
+    //                         $and: [{ _id: { $in: hotelIdList } }, 
+    //                             // { "checkin_date": { $gte: newdate1 } }, 
+    //                             // { "checkin_date": { $lte: newdate2 } }
+    //                         ]
+
+    //                     }
+    //                 },
+    //                 {
+    //                     $lookup: {
+    //                         from: "images",
+    //                         localField: "_id",
+    //                         foreignField: "hotel_id",
+    //                         pipeline: [
+    //                             { $match: { room_id: null } }
+    //                         ],
+    //                         as: "images",
+    //                     },
+    //                 },
+    //                 {
+    //                     "$project": {
+    //                         "hotel_id": "$_id",
+    //                         "hotel_name": "$hotel_name",
+    //                         "address": "$address",
+    //                         'images': "$images"
+    //                     }
+    //                 },
+
+    //             ]);
+
+    //             bookingData.forEach(e => {
+    //                 hotelData.forEach(d => {
+    //                     if (e.hotel_id == d._id) {
+    //                         bookingHistoryData.push({
+    //                             "hotel_id": d._id,
+    //                             "hotel_name": d.hotel_name,
+    //                             "address": d.address,
+    //                             'images': d.images,
+    //                             "price": e.price?.total_price,
+    //                             "checking_date": e.checkin_date,
+    //                             "checkout_date": e.checkout_date
+    //                         })
+    //                     }
+    //                 })
+    //             })
+
+    //             res.status(StatusCode.Sucess).send(bookindata);
+
+    //         } else {
+    //             res.status(StatusCode.Sucess).send([]);
+    //             res.end()
+    //         }
+    //     } catch (e: any) {
+    //         res.status(StatusCode.Server_Error).send(e.message);
+    //         res.end();
+    //     }
+    // }
+
+    //bboking details 
+    async getBookingdetails(req: Request, res: Response) {
+      var bookingDetails:any = await bookingmodel.findOne({_id : req.params.bookid});
+     // if(bookingDetails.status == "cancel" || )
+      res.send(bookingDetails);
+    }
+
     async userBookingHistory(req: Request, res: Response) {
         try {
-            // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']));
-            // var uid: String = reqData.uid;
-            var date1: any = req.query.date1;
-            var date2: any = req.query.date2;
-            var newdate1 = new Date(date1);
-            var newdate2 = new Date(date2);
-            console.log(newdate1);
-            console.log(newdate2);
-            var uid = "qeTBCkvbSjRgzYTYEOdPkhynaY33";
-            var bookingData = await bookingmodel.find({ "user_id": uid });
+            var pageSize: any = req.query.pagesize;
+            var page: any = req.query.page;
+            // var reqData: any = JSON.parse(JSON.stringify(req.headers['data']))
+            //var uid: String = reqData.uid;
+            var uid: String = "qeTBCkvbSjRgzYTYEOdPkhynaY33";
+            var bookingData = await bookingmodel.find({ "user_id": uid }).skip((parseInt(pageSize) * parseInt(page))).limit(parseInt(pageSize)).sort({ _id: -1 })
             var hotelIdList: any = [];
             var bookingHistoryData: any = [];
 
-            var bookindata = await bookingmodel.aggregate([
-                {
-                    $match: {
-                        $and: [{ user_id: uid }, 
-                            { checkin_date: { $gte: newdate1 } }, 
-                            { checkin_date: { $lte: newdate2 } }
-                           
-                        ]
-
-                    }
-                },
-            ])
             if (bookingData != null) {
+
                 bookingData.forEach(e => {
                     hotelIdList.push(e.hotel_id);
                 })
                 var hotelData = await hotelmodel.aggregate([
                     {
                         $match: {
-                            $and: [{ _id: { $in: hotelIdList } }, 
-                                // { "checkin_date": { $gte: newdate1 } }, 
-                                // { "checkin_date": { $lte: newdate2 } }
-                            ]
-
+                            _id: { $in: hotelIdList }
                         }
                     },
                     {
@@ -269,29 +350,57 @@ class BookingDomain {
                             'images': "$images"
                         }
                     },
-
                 ]);
-
+                var flag = false;
                 bookingData.forEach(e => {
-                    hotelData.forEach(d => {
+                    hotelData.forEach(async d => {
                         if (e.hotel_id == d._id) {
                             bookingHistoryData.push({
+                                "booking_id": e._id,
+                                "status": e.status,
                                 "hotel_id": d._id,
                                 "hotel_name": d.hotel_name,
                                 "address": d.address,
                                 'images': d.images,
                                 "price": e.price?.total_price,
+                                "no_of_room": e.no_of_room,
+                                "number_of_nights": e.price?.number_of_nights,
+                                "room_price": e.price?.room_price,
+                                "discount": e.price?.discount,
+                                "gst": e.price?.gst,
+                                "booked_date": e.booked_date,
                                 "checking_date": e.checkin_date,
                                 "checkout_date": e.checkout_date
                             })
                         }
                     })
                 })
+                var i: any;
+                for (i = 0; i < bookingHistoryData.length; i++) {
+                    var dataReview = await reviewmodel.find({ $and: [{ user_id: uid }, { hotel_id: bookingHistoryData[i].hotel_id }] });
+                    if (dataReview.length != 0) {
 
-                res.status(StatusCode.Sucess).send(bookindata);
+                        flag = true;
+                    } else {
+                        const date = new Date();
+                        console.log("checkout", bookingHistoryData[i].checkout_date);
+                        console.log("current", date);
 
+                        if (bookingHistoryData[i].checkout_date <= date) {
+                            flag = false;
+                            console.log("gretter")
+                        } else {
+                            console.log("lesser")
+                        }
+
+
+                    }
+                    bookingHistoryData[i].review_posted = flag
+                }
+
+                res.status(StatusCode.Sucess).send(bookingHistoryData);
             } else {
-                res.status(StatusCode.Sucess).send([]);
+                res.status(StatusCode.Sucess).send([])
                 res.end()
             }
         } catch (e: any) {

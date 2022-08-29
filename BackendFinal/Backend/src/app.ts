@@ -6,6 +6,8 @@ import * as admin from 'firebase-admin';
 import credential from "./travelproject22-6b9d4-firebase-adminsdk-2wiay-c9c1876710.json";
 import { LoggerMiddleware } from './middlewear/logger';
 
+import * as firebase from 'firebase/app';
+
 const app: Express = express();
 const connection = mongoose.connect('mongodb+srv://akash:akash@cluster0.4gzjhma.mongodb.net/mmt');
 dotenv.config();
@@ -13,6 +15,10 @@ const port = process.env.PORT;
 app.use(express.json());
 app.use(LoggerMiddleware);
 
+import { firebaseConfig } from "./firebase.config";
+firebase.initializeApp(firebaseConfig); 
+
+  
 // ROUTER
 import { router as hotelroute } from './controller/hotel_controller';
 import { router as tourroute } from './controller/tour_controller';
@@ -25,6 +31,8 @@ import { router as bookmarkroute } from './controller/bookmark_controller';
 import {router as paymentroute}  from './controller/payment_controller';
 import cors from "cors";
 import { bookingmodel } from './model/booking';
+import { async } from '@firebase/util';
+import { func } from '@hapi/joi';
 var corsOptions = {
 
     origin: '*',
